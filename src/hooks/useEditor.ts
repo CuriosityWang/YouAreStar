@@ -10,6 +10,7 @@ import {
 import { NEUTRAL_STATS, type Stats } from "../lib/color";
 import { fileToImage, imageDims, loadImage, makeThumbDataURL } from "../lib/loadImage";
 import { imageStats, sampleRegionStats } from "../lib/imageStats";
+import { createMaskCanvas, drawBaseImage, type MaskCanvas } from "../lib/maskCanvas";
 
 export interface EditorSource {
   kind: "preset" | "custom";
@@ -20,7 +21,7 @@ export interface EditorSource {
   bgWidth: number;
   bgHeight: number;
   corners: Corners;
-  mask: HTMLImageElement | null;
+  maskCanvas: MaskCanvas | null;
 }
 
 export interface EditorState {
@@ -34,6 +35,8 @@ export interface EditorState {
   grade: GradeParams;
   blend: BlendParams;
   editable: boolean; // corner handles draggable
+  maskMode: boolean; // brush mask tool active
+  maskTouched: boolean; // mask has content worth feeding to the GPU
   seed: number;
   loading: boolean;
   error: TKey | null;
@@ -57,6 +60,8 @@ const initialState: EditorState = {
   grade: DEFAULT_GRADE,
   blend: DEFAULT_BLEND,
   editable: false,
+  maskMode: false,
+  maskTouched: false,
   seed: Math.random() * 100,
   loading: false,
   error: null,
@@ -74,6 +79,8 @@ type Action =
   | { type: "SET_BLEND"; patch: Partial<BlendParams> }
   | { type: "RESET_ADJUST" }
   | { type: "SET_EDITABLE"; value: boolean }
+  | { type: "SET_MASK_MODE"; value: boolean }
+  | { type: "SET_MASK_CANVAS"; mask: MaskCanvas }
   | { type: "BACK" };
 
 function reducer(state: EditorState, action: Action): EditorState {
@@ -89,6 +96,8 @@ function reducer(state: EditorState, action: Action): EditorState {
         view: "editor",
         source: action.source,
         editable: action.editable,
+        maskMode: false,
+        maskTouched: false,
         userImage: null,
         userThumb: null,
         userName: null,
@@ -124,7 +133,13 @@ function reducer(state: EditorState, action: Action): EditorState {
     case "RESET_ADJUST":
       return { ...state, grade: DEFAULT_GRADE, blend: DEFAULT_BLEND };
     case "SET_EDITABLE":
-      return { ...state, editable: action.value };
+      return { ...state, editable: action.value, maskMode: action.value ? false : state.maskMode };
+    case "SET_MASK_MODE":
+      return { ...state, maskMode: action.value, editable: action.value ? false : state.editable };
+    case "SET_MASK_CANVAS":
+      return state.source
+        ? { ...state, source: { ...state.source, maskCanvas: action.mask }, maskTouched: true }
+        : state;
     case "BACK":
       return { ...initialState, seed: state.seed, view: "gallery" };
     default:
@@ -135,13 +150,20 @@ function reducer(state: EditorState, action: Action): EditorState {
 export function useEditor() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const statsTimer = useRef<number | null>(null);
+  const sourceRef = useRef(state.source);
+  sourceRef.current = state.source;
 
   const openPreset = useCallback(async (preset: Preset) => {
     dispatch({ type: "LOADING", value: true });
     try {
       const bgImage = await loadImage(preset.src);
       const [bgWidth, bgHeight] = imageDims(bgImage);
-      const mask = preset.mask ? await loadImage(preset.mask) : null;
+      let maskCanvas: MaskCanvas | null = null;
+      if (preset.mask) {
+        const maskImg = await loadImage(preset.mask);
+        maskCanvas = createMaskCanvas(bgWidth, bgHeight);
+        drawBaseImage(maskCanvas, maskImg);
+      }
       dispatch({
         type: "OPEN",
         editable: false,
@@ -154,9 +176,10 @@ export function useEditor() {
           bgWidth,
           bgHeight,
           corners: preset.corners,
-          mask,
+          maskCanvas,
         },
       });
+      if (maskCanvas) dispatch({ type: "SET_MASK_CANVAS", mask: maskCanvas });
     } catch (e) {
       console.error(e);
       dispatch({ type: "ERROR", message: "error.load" });
@@ -178,7 +201,7 @@ export function useEditor() {
           bgWidth,
           bgHeight,
           corners: CENTERED_QUAD,
-          mask: null,
+          maskCanvas: null,
         },
       });
     } catch (e) {
@@ -225,6 +248,18 @@ export function useEditor() {
     (value: boolean) => dispatch({ type: "SET_EDITABLE", value }),
     [],
   );
+  const setMaskMode = useCallback(
+    (value: boolean) => dispatch({ type: "SET_MASK_MODE", value }),
+    [],
+  );
+  const ensureMask = useCallback((): MaskCanvas | null => {
+    const src = sourceRef.current;
+    if (!src) return null;
+    if (src.maskCanvas) return src.maskCanvas;
+    const mask = createMaskCanvas(src.bgWidth, src.bgHeight);
+    dispatch({ type: "SET_MASK_CANVAS", mask });
+    return mask;
+  }, []);
   const backToGallery = useCallback(() => dispatch({ type: "BACK" }), []);
 
   // Recompute target (billboard-region) stats when the background or corners
@@ -255,6 +290,8 @@ export function useEditor() {
     setBlend,
     resetAdjust,
     setEditable,
+    setMaskMode,
+    ensureMask,
     backToGallery,
   };
 }

@@ -77,10 +77,11 @@ export function EditorStage({
     rendererRef.current?.setUser(userImage);
   }, [userImage]);
 
-  // mask texture
+  // mask texture (live painting bypasses this via useMaskTool; this handles
+  // initial load, preset base, undo, and source switches)
   useEffect(() => {
-    rendererRef.current?.setMask(source.mask);
-  }, [source.mask]);
+    rendererRef.current?.setMask(source.maskCanvas?.canvas ?? null);
+  }, [source.maskCanvas]);
 
   // responsive sizing
   useEffect(() => {

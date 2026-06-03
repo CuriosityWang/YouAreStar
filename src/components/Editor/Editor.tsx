@@ -58,7 +58,7 @@ export function Editor({ api }: { api: EditorApi }) {
         bgWidth: s.bgWidth,
         bgHeight: s.bgHeight,
         user: state.userImage,
-        mask: s.mask,
+        mask: s.maskCanvas?.canvas ?? null,
         state: renderState,
       });
       const url = URL.createObjectURL(blob);
