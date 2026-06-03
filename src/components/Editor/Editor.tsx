@@ -24,6 +24,7 @@ export function Editor({ api }: { api: EditorApi }) {
     setBlend,
     resetAdjust,
     setEditable,
+    setMaskMode,
     backToGallery,
   } = api;
   const { t, lang } = useI18n();
@@ -122,6 +123,12 @@ export function Editor({ api }: { api: EditorApi }) {
               {state.editable ? t("editor.lock") : t("editor.adjust")}
             </Button>
           )}
+          <Button
+            variant="ghost"
+            onClick={() => setMaskMode(!state.maskMode)}
+          >
+            {state.maskMode ? t("mask.exit") : t("mask.toggle")}
+          </Button>
           <LangToggle />
         </div>
       </div>
@@ -151,6 +158,9 @@ export function Editor({ api }: { api: EditorApi }) {
           blend={state.blend}
           seed={state.seed}
           editable={state.editable}
+          api={api}
+          maskMode={state.maskMode}
+          maskTouched={state.maskTouched}
           onCorners={setCorners}
           onUserFile={setUserFile}
         />
@@ -194,6 +204,7 @@ export function Editor({ api }: { api: EditorApi }) {
               </div>
             )}
             {state.editable && <p className="panel-note">{t("corner.note")}</p>}
+            {state.maskMode && <p className="panel-note">{t("mask.hint")}</p>}
           </div>
 
           <ColorMatchPanel grade={state.grade} onChange={setGrade} />
