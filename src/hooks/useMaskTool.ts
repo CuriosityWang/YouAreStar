@@ -15,8 +15,8 @@ import {
 
 export type MaskViewMode = "overlay" | "result" | "mask";
 
-// Vermilion overlay tint — keep in sync with --accent in src/styles/global.css.
-const ACCENT = { r: 214, g: 69, b: 47 };
+// Vermilion overlay tint — keep in sync with --vermilion (#d23c25) in src/styles/global.css.
+const ACCENT = { r: 0xd2, g: 0x3c, b: 0x25 };
 const OVERLAY_ALPHA = 0.5; // peak overlay opacity for the tint view
 const UNDO_LIMIT = 30;
 

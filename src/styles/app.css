@@ -455,6 +455,19 @@
   border-radius: 50%;
   pointer-events: none;
 }
+/* center dot — a precise aim point at the brush center */
+.mask-cursor::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 2px;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+}
 .mask-layer[data-erase="true"] .mask-cursor {
   border-color: var(--vermilion);
   border-style: dashed;
