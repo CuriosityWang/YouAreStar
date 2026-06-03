@@ -107,6 +107,25 @@ const STRINGS = {
     zh: "无法载入该图片，请换一个 PNG 或 JPG 文件试试。",
   },
   "error.dismiss": { en: "Dismiss", zh: "关闭" },
+
+  "mask.toggle": { en: "Mask", zh: "蒙版" },
+  "mask.exit": { en: "Done", zh: "完成" },
+  "mask.hint": {
+    en: "Paint over anything that should stay in front of your ad.",
+    zh: "把应当遮在广告前面的东西涂出来。",
+  },
+  "mask.paint": { en: "Paint", zh: "涂抹" },
+  "mask.erase": { en: "Erase", zh: "擦除" },
+  "mask.size": { en: "Size", zh: "大小" },
+  "mask.hardness": { en: "Edge", zh: "软硬" },
+  "mask.undo": { en: "Undo", zh: "撤销" },
+  "mask.redo": { en: "Redo", zh: "重做" },
+  "mask.clear": { en: "Clear", zh: "清空" },
+  "mask.invert": { en: "Invert", zh: "反相" },
+  "mask.view.overlay": { en: "Overlay", zh: "叠层" },
+  "mask.view.result": { en: "Result", zh: "结果" },
+  "mask.view.mask": { en: "Mask", zh: "蒙版" },
+  "mask.fit": { en: "Fit", zh: "适应" },
 } satisfies Record<string, LocalizedString>;
 
 export type TKey = keyof typeof STRINGS;
