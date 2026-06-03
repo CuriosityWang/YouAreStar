@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="sp-wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d7d2c6"/>
+      <stop offset="1" stop-color="#cbc4b3"/>
+    </linearGradient>
+    <linearGradient id="sp-floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b3aa97"/>
+      <stop offset="1" stop-color="#9c927d"/>
+    </linearGradient>
+    <linearGradient id="sp-panel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#faf6ee"/>
+      <stop offset="1" stop-color="#e5dcc8"/>
+    </linearGradient>
+    <linearGradient id="sp-vault" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1714" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#1b1714" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="sp-panshade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0.14"/>
+    </linearGradient>
+  </defs>
+
+  <!-- wall, ceiling vault, floor -->
+  <rect width="1600" height="1000" fill="url(#sp-wall)"/>
+  <path d="M0,0 H1600 V150 Q800,250 0,150 Z" fill="url(#sp-vault)"/>
+  <rect y="740" width="1600" height="260" fill="url(#sp-floor)"/>
+  <line x1="0" y1="740" x2="1600" y2="740" stroke="#1b1714" stroke-opacity="0.2"/>
+  <!-- platform edge warning strip -->
+  <rect y="740" width="1600" height="16" fill="#d23c25" fill-opacity="0.55"/>
+
+  <!-- tiling lines on wall -->
+  <g stroke="#1b1714" stroke-opacity="0.06">
+    <line x1="0" y1="250" x2="1600" y2="250"/>
+    <line x1="0" y1="520" x2="1600" y2="520"/>
+    <line x1="200" y1="150" x2="200" y2="740"/>
+    <line x1="1380" y1="150" x2="1380" y2="740"/>
+  </g>
+
+  <!-- floor perspective -->
+  <g stroke="#1b1714" stroke-opacity="0.08">
+    <line x1="0" y1="1000" x2="420" y2="740"/>
+    <line x1="560" y1="1000" x2="720" y2="740"/>
+    <line x1="1600" y1="1000" x2="1180" y2="740"/>
+  </g>
+
+  <!-- bench -->
+  <g fill="#1b1714" fill-opacity="0.4">
+    <rect x="120" y="650" width="220" height="20"/>
+    <rect x="140" y="670" width="14" height="70"/>
+    <rect x="306" y="670" width="14" height="70"/>
+  </g>
+
+  <!-- main panel: the ad surface (corners match presets.ts) -->
+  <polygon points="340,300 1210,400 1210,660 340,640" fill="#1b1714" fill-opacity="0.18"
+           transform="translate(0,18)"/>
+  <polygon points="340,300 1210,400 1210,660 340,640" fill="url(#sp-panel)"
+           stroke="#1b1714" stroke-opacity="0.5" stroke-width="3"/>
+  <polygon points="340,300 1210,400 1210,660 340,640" fill="url(#sp-panshade)"/>
+
+  <!-- crop marks + label -->
+  <g stroke="#938979" stroke-width="2">
+    <path d="M384,340 h36 M384,340 v26"/>
+    <path d="M1170,438 h-36 M1170,438 v26"/>
+    <path d="M1170,624 h-36 M1170,624 v-26"/>
+    <path d="M384,602 h36 M384,602 v-26"/>
+  </g>
+  <text x="775" y="492" text-anchor="middle" font-family="'Spline Sans Mono',monospace"
+        font-size="28" letter-spacing="6" fill="#938979">AD SURFACE</text>
+  <text x="775" y="530" text-anchor="middle" font-family="'Spline Sans Mono',monospace"
+        font-size="16" letter-spacing="3" fill="#b3a890">DROP IMAGE HERE</text>
+
+  <!-- commuter silhouette -->
+  <g fill="#1b1714" fill-opacity="0.5">
+    <circle cx="1340" cy="640" r="30"/>
+    <path d="M1310 682 q30 -36 60 0 l12 110 -34 4 -8 -72 -8 72 -34 -4 z"/>
+  </g>
+  <ellipse cx="1340" cy="800" rx="56" ry="10" fill="#1b1714" fill-opacity="0.12"/>
+</svg>

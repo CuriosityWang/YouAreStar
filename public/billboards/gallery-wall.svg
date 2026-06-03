@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="gw-wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#efe7d6"/>
+      <stop offset="1" stop-color="#e8dfca"/>
+    </linearGradient>
+    <linearGradient id="gw-floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ddd0b6"/>
+      <stop offset="1" stop-color="#cfc1a3"/>
+    </linearGradient>
+    <linearGradient id="gw-panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f4ec"/>
+      <stop offset="1" stop-color="#ece3d2"/>
+    </linearGradient>
+    <linearGradient id="gw-shadow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0.10"/>
+      <stop offset="0.18" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- wall & floor -->
+  <rect width="1600" height="1000" fill="url(#gw-wall)"/>
+  <rect y="720" width="1600" height="280" fill="url(#gw-floor)"/>
+  <line x1="0" y1="720" x2="1600" y2="720" stroke="#1b1714" stroke-opacity="0.18"/>
+  <!-- floor perspective seams -->
+  <g stroke="#1b1714" stroke-opacity="0.07">
+    <line x1="120" y1="1000" x2="540" y2="720"/>
+    <line x1="540" y1="1000" x2="760" y2="720"/>
+    <line x1="1080" y1="1000" x2="900" y2="720"/>
+    <line x1="1520" y1="1000" x2="1120" y2="720"/>
+  </g>
+
+  <!-- small secondary frame for context -->
+  <g>
+    <rect x="170" y="360" width="150" height="200" fill="#f8f4ec" stroke="#1b1714" stroke-opacity="0.5"/>
+    <rect x="186" y="376" width="118" height="168" fill="#e3d8c2"/>
+    <circle cx="245" cy="445" r="34" fill="#d23c25" fill-opacity="0.6"/>
+  </g>
+
+  <!-- figure silhouette for scale -->
+  <g fill="#1b1714" fill-opacity="0.55">
+    <circle cx="1330" cy="560" r="34"/>
+    <path d="M1296 612 q34 -42 68 0 l14 150 -40 4 -8 -96 -8 96 -40 -4 z"/>
+  </g>
+  <ellipse cx="1330" cy="772" rx="58" ry="10" fill="#1b1714" fill-opacity="0.14"/>
+
+  <!-- main panel: the ad surface (corners match presets.ts) -->
+  <polygon points="470,290 1080,345 1080,710 470,690" fill="#1b1714" fill-opacity="0.16"
+           transform="translate(10,16)"/>
+  <polygon points="470,290 1080,345 1080,710 470,690" fill="url(#gw-panel)"
+           stroke="#1b1714" stroke-opacity="0.6" stroke-width="3"/>
+  <polygon points="470,290 1080,345 1080,710 470,690" fill="url(#gw-shadow)"/>
+
+  <!-- crop marks + label on the empty surface -->
+  <g stroke="#938979" stroke-width="2">
+    <path d="M512,328 h34 M512,328 v26"/>
+    <path d="M1040,378 h-34 M1040,378 v26"/>
+    <path d="M1040,672 h-34 M1040,672 v-26"/>
+    <path d="M512,654 h34 M512,654 v-26"/>
+  </g>
+  <text x="775" y="498" text-anchor="middle" font-family="'Spline Sans Mono',monospace"
+        font-size="26" letter-spacing="5" fill="#938979">AD SURFACE</text>
+  <text x="775" y="534" text-anchor="middle" font-family="'Spline Sans Mono',monospace"
+        font-size="16" letter-spacing="3" fill="#b3a890">DROP IMAGE HERE</text>
+</svg>

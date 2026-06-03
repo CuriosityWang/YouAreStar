@@ -1,0 +1,135 @@
+/* ============================================================
+   Billboard Replacer — Editorial Gallery theme
+   Warm paper · ink · hairlines · Fraunces display · vermilion accent
+   ============================================================ */
+
+:root {
+  /* paper & ink */
+  --paper:      #f4efe4;
+  --paper-2:    #faf6ec;
+  --paper-sunk: #ebe4d4;
+  --ink:        #1b1714;
+  --ink-soft:   #574e44;
+  --muted:      #938979;
+  --hairline:   #ded5c3;
+  --hairline-2: #cabfa8;
+
+  /* accent — restrained vermilion */
+  --vermilion:      #d23c25;
+  --vermilion-deep: #a32c19;
+  --vermilion-wash: #f3d9cf;
+
+  /* type */
+  --display: "Fraunces", "Noto Serif SC", Georgia, serif;
+  --body:    "Newsreader", "Noto Serif SC", Georgia, serif;
+  --mono:    "Spline Sans Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* metrics */
+  --rule: 1px;
+  --radius: 2px;
+  --gutter: clamp(20px, 4vw, 64px);
+  --maxw: 1320px;
+
+  /* motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--body);
+  background-color: var(--paper);
+  /* faint paper grain */
+  background-image:
+    radial-gradient(circle at 18% 12%, rgba(210, 60, 37, 0.025), transparent 36%),
+    radial-gradient(circle at 84% 88%, rgba(27, 23, 20, 0.035), transparent 40%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+
+/* paper grain overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.012em;
+  margin: 0;
+}
+
+p { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* technical / label type */
+.label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.serif-italic { font-style: italic; }
+
+::selection {
+  background: var(--vermilion);
+  color: var(--paper-2);
+}
+
+/* thin scrollbars in panels */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--hairline-2) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--hairline-2);
+  border-radius: 8px;
+  border: 2px solid var(--paper);
+}
+
+/* shared layout shell */
+.shell {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.hairline { border: none; border-top: var(--rule) solid var(--hairline); margin: 0; }
+
+input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }
+input[type="range"]:focus { outline: none; }
+/* Visible keyboard focus on every browser (the -webkit thumb tint alone leaves
+   Firefox/Safari with no focus cue). */
+input[type="range"]:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 4px; border-radius: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
