@@ -5,6 +5,10 @@ import type { Corners } from "../../data/presets";
 import type { EditorSource } from "../../hooks/useEditor";
 import { loc, useI18n } from "../../i18n";
 import { CornerHandles } from "./CornerHandles";
+import { useMaskTool } from "../../hooks/useMaskTool";
+import { MaskBrushLayer } from "./MaskBrushLayer";
+import { MaskToolbar } from "./MaskToolbar";
+import type { EditorApi } from "../../hooks/useEditor";
 
 const FRAME_CHROME = 30; // frame padding (14*2) + border (2)
 const PLACARD = 64;
@@ -31,6 +35,9 @@ export function EditorStage({
   blend,
   seed,
   editable,
+  api,
+  maskMode,
+  maskTouched,
   onCorners,
   onUserFile,
 }: {
@@ -42,16 +49,41 @@ export function EditorStage({
   blend: BlendParams;
   seed: number;
   editable: boolean;
+  api: EditorApi;
+  maskMode: boolean;
+  maskTouched: boolean;
   onCorners: (c: Corners) => void;
   onUserFile: (f: File) => void;
 }) {
   const { t, lang } = useI18n();
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const holderRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<Renderer | null>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [dragging, setDragging] = useState(false);
   const [compare, setCompare] = useState(false); // hold to preview the bare scene
+
+  const getRenderState = (): RenderState => ({
+    corners: source.corners,
+    hasUser: !!userImage,
+    srcStats,
+    tgtStats,
+    grade,
+    blend,
+    seed,
+  });
+
+  const tool = useMaskTool({
+    active: maskMode && size.w > 0,
+    api,
+    rendererRef,
+    overlayRef,
+    holderRef,
+    displaySize: { w: size.w, h: size.h },
+    getRenderState,
+  });
 
   // create / destroy renderer
   useEffect(() => {
@@ -78,10 +110,11 @@ export function EditorStage({
   }, [userImage]);
 
   // mask texture (live painting bypasses this via useMaskTool; this handles
-  // initial load, preset base, undo, and source switches)
+  // initial load, preset base, undo, view switches, and source changes)
   useEffect(() => {
-    rendererRef.current?.setMask(source.maskCanvas?.canvas ?? null);
-  }, [source.maskCanvas]);
+    const canvas = maskTouched ? source.maskCanvas?.canvas ?? null : null;
+    rendererRef.current?.setMask(canvas);
+  }, [source.maskCanvas, maskTouched]);
 
   // responsive sizing
   useEffect(() => {
@@ -99,7 +132,10 @@ export function EditorStage({
   useEffect(() => {
     const r = rendererRef.current;
     if (!r || size.w === 0) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const baseDpr = Math.min(window.devicePixelRatio || 1, 2);
+    // In mask mode, supersample so the CSS-zoomed preview stays reasonably sharp.
+    const superscale = maskMode ? Math.min(Math.max(tool.zoom, 1), 3) : 1;
+    const dpr = Math.min(baseDpr * superscale, 4);
     r.resize(Math.round(size.w * dpr), Math.round(size.h * dpr));
     const state: RenderState = {
       corners: source.corners,
@@ -111,7 +147,7 @@ export function EditorStage({
       seed,
     };
     r.render(state);
-  }, [size, source.corners, userImage, srcStats, tgtStats, grade, blend, seed, compare]);
+  }, [size, source.corners, userImage, srcStats, tgtStats, grade, blend, seed, compare, maskMode, tool.zoom]);
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
@@ -136,13 +172,36 @@ export function EditorStage({
       <div className="stage-frame">
         <div
           className="stage-canvas-holder"
+          ref={holderRef}
+          data-mask={maskMode}
           style={{ width: size.w || undefined, height: size.h || undefined }}
         >
-          <canvas ref={canvasRef} style={{ width: size.w, height: size.h }} />
-          {editable && size.w > 0 && (
+          <div
+            className="stage-zoom"
+            style={
+              maskMode
+                ? {
+                    transform: `translate(${tool.view.panX}px, ${tool.view.panY}px) scale(${tool.view.zoom})`,
+                    transformOrigin: "0 0",
+                  }
+                : undefined
+            }
+          >
+            <canvas ref={canvasRef} style={{ width: size.w, height: size.h }} />
+            <canvas
+              ref={overlayRef}
+              className="mask-overlay"
+              style={{
+                width: size.w,
+                height: size.h,
+                display: maskMode && tool.viewMode !== "result" ? "block" : "none",
+              }}
+            />
+          </div>
+          {editable && !maskMode && size.w > 0 && (
             <CornerHandles corners={source.corners} onChange={onCorners} />
           )}
-          {userImage && size.w > 0 && (
+          {userImage && !maskMode && size.w > 0 && (
             <button
               type="button"
               className="stage-compare"
@@ -155,10 +214,14 @@ export function EditorStage({
               {t("stage.compare")}
             </button>
           )}
-          <div className="stage-drop">
-            <span className="label">{userImage ? t("drop.place") : t("drop.empty")}</span>
-          </div>
+          {maskMode && size.w > 0 && <MaskBrushLayer tool={tool} />}
+          {!maskMode && (
+            <div className="stage-drop">
+              <span className="label">{userImage ? t("drop.place") : t("drop.empty")}</span>
+            </div>
+          )}
         </div>
+        {maskMode && size.w > 0 && <MaskToolbar tool={tool} />}
         <div className="stage-placard">
           <span className="pl-name">{loc(source.name, lang)}</span>
           <span className="pl-dim">
