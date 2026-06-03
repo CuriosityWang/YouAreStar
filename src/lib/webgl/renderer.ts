@@ -187,6 +187,20 @@ export class Renderer {
     this.hasMask = !!img;
   }
 
+  /**
+   * Incrementally upload `source` (its full pixels) into the existing mask
+   * texture at (x, y), in mask-canvas pixels. WebGL1 texSubImage2D has no
+   * source-rect arg, so callers pass a small scratch canvas already cropped to
+   * the dirty region. Requires a prior setMask(canvas) so texMask is full-size.
+   */
+  updateMaskRegion(source: TexImageSource, x: number, y: number) {
+    if (!this.hasMask) return;
+    const gl = this.gl;
+    gl.bindTexture(gl.TEXTURE_2D, this.texMask);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, source);
+  }
+
   resize(width: number, height: number) {
     // Assigning canvas.width/height always clears + reallocates the drawing
     // buffer, so skip it when the size is unchanged (e.g. a slider/handle tick
