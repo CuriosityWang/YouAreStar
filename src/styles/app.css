@@ -418,3 +418,44 @@
 }
 .error-dismiss:hover { color: var(--vermilion); }
 .error-dismiss:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+
+/* ---- Mask tool: zoom container, overlay, cursor ---- */
+.stage-zoom {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.stage-zoom > canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.mask-overlay {
+  pointer-events: none;
+  image-rendering: auto;
+}
+.stage-canvas-holder[data-mask="true"] {
+  cursor: none;
+  overflow: hidden;
+}
+.mask-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  touch-action: none;
+}
+.mask-layer[data-pan="true"] {
+  cursor: grab;
+}
+.mask-cursor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.mask-layer[data-erase="true"] .mask-cursor {
+  border-color: var(--vermilion);
+  border-style: dashed;
+}
