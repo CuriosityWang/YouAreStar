@@ -1,0 +1,9 @@
+{
+  "name": "run-billboard-replacer-driver",
+  "private": true,
+  "type": "module",
+  "description": "Smoke-driver deps for the billboard-replacer run skill. Kept out of the app's package.json so the app stays dependency-light.",
+  "dependencies": {
+    "puppeteer-core": "^25.1.0"
+  }
+}

@@ -78,14 +78,21 @@ export function Editor({ api }: { api: EditorApi }) {
 
   async function handleCopyCorners() {
     const corners = s.corners.map(([x, y]) => [r4(x), r4(y)]);
-    const nm = typeof s.name === "string" ? { en: s.name, zh: s.name } : s.name;
-    const snippet = `{
+    let snippet: string;
+    if (s.kind === "preset") {
+      // Tightening an existing scene: stamp its id so the value maps back to
+      // the right entry in src/data/presets.ts (paste this line over its `corners`).
+      snippet = `// preset "${s.presetId}"\n  corners: ${JSON.stringify(corners)},`;
+    } else {
+      const nm = typeof s.name === "string" ? { en: s.name, zh: s.name } : s.name;
+      snippet = `{
   id: "${slug(baseName)}",
   name: { en: "${nm.en}", zh: "${nm.zh}" },
   caption: { en: "", zh: "" },
   src: "/billboards/your-file.ext",
   corners: ${JSON.stringify(corners)},
 }`;
+    }
     try {
       await navigator.clipboard.writeText(snippet);
       flash(t("toast.copied"));

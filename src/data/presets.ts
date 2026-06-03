@@ -31,80 +31,83 @@ export interface Preset {
   mask?: string;
 }
 
+// Photos are royalty-free (Unsplash License). See public/billboards/CREDITS.md.
+// `corners` below are eyeballed estimates traced over each photo's ad surface;
+// fine-tune them in the app's "Use your own billboard" mode if needed.
 export const PRESETS: Preset[] = [
   {
     id: "times-square-night",
-    name: { en: "Times Square — Center Cut", zh: "时代广场 · 正中大屏" },
+    name: { en: "Times Square — Night Marquee", zh: "时代广场 · 夜色巨幕" },
     caption: {
-      en: "Night, a neon canyon — the big screen dead ahead.",
-      zh: "夜晚，霓虹峡谷——正前方的巨幕。",
+      en: "A rain-slick night; the big screen rides above the corner.",
+      zh: "雨夜街角——巨幕高悬于餐厅之上。",
     },
-    src: "/billboards/times-square-night.svg",
+    src: "/billboards/times-square-night.jpg",
     corners: [
-      [0.3375, 0.17],
-      [0.6625, 0.12],
-      [0.6625, 0.6],
-      [0.3375, 0.54],
+      [0.0737, 0.3427],
+      [0.5857, 0.1391],
+      [0.5865, 0.3853],
+      [0.0691, 0.4618],
     ],
   },
   {
     id: "times-square-corner",
-    name: { en: "Times Square — The Corner", zh: "时代广场 · 转角竖屏" },
+    name: { en: "Times Square — The Corner", zh: "时代广场 · 转角斜切" },
     caption: {
-      en: "A tower-corner wrap, raking hard to the right.",
-      zh: "塔楼转角包柱，强烈向右斜切。",
+      en: "Neon crossing at night — a tall panel raking hard to the right.",
+      zh: "霓虹夜路口——高大灯箱强烈向右斜切。",
     },
-    src: "/billboards/times-square-corner.svg",
+    src: "/billboards/times-square-corner.jpg",
     corners: [
-      [0.225, 0.16],
-      [0.45, 0.25],
-      [0.45, 0.86],
-      [0.225, 0.74],
+      [0.076, 0.2097],
+      [0.1669, 0.3498],
+      [0.1615, 0.4881],
+      [0.0638, 0.4089],
     ],
   },
   {
     id: "gallery-wall",
     name: { en: "The Gallery Wall", zh: "画廊墙面" },
     caption: {
-      en: "Interior, warm light — a framed surface at three-quarter view.",
-      zh: "室内暖光——三分之四视角的画框。",
+      en: "Cool museum light — a large canvas at three-quarter view.",
+      zh: "冷调展厅光——三分之四视角的大幅画作。",
     },
-    src: "/billboards/gallery-wall.svg",
+    src: "/billboards/gallery-wall.jpg",
     corners: [
-      [0.29375, 0.29],
-      [0.675, 0.345],
-      [0.675, 0.71],
-      [0.29375, 0.69],
+      [0.2521, 0.2119],
+      [0.5953, 0.2117],
+      [0.596, 0.8718],
+      [0.2549, 0.6936],
     ],
   },
   {
     id: "street-kiosk",
     name: { en: "The Street Kiosk", zh: "街头立柱" },
     caption: {
-      en: "Open air — a vertical poster column on the avenue.",
-      zh: "户外——大道旁的竖式海报柱。",
+      en: "Open air — a vertical poster panel at the bus stop.",
+      zh: "户外——公交站旁的竖式海报灯箱。",
     },
-    src: "/billboards/street-kiosk.svg",
+    src: "/billboards/street-kiosk.jpg",
     corners: [
-      [0.359375, 0.215],
-      [0.590625, 0.25],
-      [0.6, 0.84],
-      [0.35, 0.81],
+      [0.3001, 0.1962],
+      [0.6085, 0.2129],
+      [0.6119, 0.7318],
+      [0.3003, 0.7448],
     ],
   },
   {
     id: "subway-platform",
     name: { en: "The Subway Platform", zh: "地铁站台" },
     caption: {
-      en: "Underground — a wide panel raking down the platform.",
-      zh: "地下——沿站台斜展的宽幅广告。",
+      en: "Underground — a long panel raking down the concourse.",
+      zh: "地下长廊——沿墙斜展的灯箱广告。",
     },
-    src: "/billboards/subway-platform.svg",
+    src: "/billboards/subway-platform.jpg",
     corners: [
-      [0.2125, 0.3],
-      [0.75625, 0.4],
-      [0.75625, 0.66],
-      [0.2125, 0.64],
+      [0.0016, 0.3985],
+      [0.4519, 0.5052],
+      [0.4536, 0.5784],
+      [0.0006, 0.721],
     ],
   },
 ];
