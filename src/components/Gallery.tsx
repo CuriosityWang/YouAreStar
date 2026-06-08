@@ -24,7 +24,6 @@ export function Gallery({
           <div className="masthead-top">
             <span className="masthead-mark">Billboard&nbsp;/&nbsp;Replacer</span>
             <div className="masthead-right">
-              <span className="masthead-meta">{t("meta.tech")}</span>
               <LangToggle />
             </div>
           </div>

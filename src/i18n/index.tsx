@@ -19,10 +19,8 @@ export function loc(v: LocalizedString | string, lang: Lang): string {
 }
 
 const STRINGS = {
-  "meta.tech": { en: "WEBGL · HOMOGRAPHY · REINHARD", zh: "WEBGL · 单应变换 · REINHARD" },
-
-  "title.lead": { en: "Put your work on the", zh: "让你的作品，登上" },
-  "title.accent": { en: "wall", zh: "广告牌" },
+  "title.lead": { en: "Put your work on", zh: "让你的作品，登上" },
+  "title.accent": { en: "Times Square", zh: "时代广场" },
   "title.tail": { en: ".", zh: "。" },
 
   "lede.1": {

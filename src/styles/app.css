@@ -21,16 +21,15 @@
   text-transform: uppercase;
   color: var(--ink);
 }
-.masthead-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.12em; }
 .masthead-right { display: flex; align-items: center; gap: 16px; }
-@media (max-width: 560px) { .masthead-right .masthead-meta { display: none; } }
 
 .masthead-title {
-  font-size: clamp(46px, 10vw, 132px);
-  line-height: 0.92;
+  font-size: clamp(28px, 6.2vw, 80px);
+  line-height: 1;
   letter-spacing: -0.03em;
   margin: clamp(28px, 6vw, 60px) 0 0;
   font-weight: 350;
+  white-space: nowrap;
 }
 .masthead-title em {
   font-style: italic;
