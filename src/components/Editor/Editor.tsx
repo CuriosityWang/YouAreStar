@@ -23,6 +23,7 @@ export function Editor({ api }: { api: EditorApi }) {
     setGrade,
     setBlend,
     resetAdjust,
+    saveScene,
     setEditable,
     setMaskMode,
     backToGallery,
@@ -32,6 +33,9 @@ export function Editor({ api }: { api: EditorApi }) {
   const s = state.source!;
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [saving, setSaving] = useState(false);
   const toastTimer = useRef<number | null>(null);
   const baseName = typeof s.name === "string" ? s.name : s.name.en;
 
@@ -102,6 +106,23 @@ export function Editor({ api }: { api: EditorApi }) {
     }
   }
 
+  function openSavePrompt() {
+    setSaveName(loc(s.name, lang));
+    setSaveOpen(true);
+  }
+
+  async function handleSaveScene() {
+    const name = saveName.trim() || loc(s.name, lang);
+    setSaving(true);
+    const ok = await saveScene(name);
+    setSaving(false);
+    if (ok) {
+      setSaveOpen(false);
+      flash(t("toast.sceneSaved"));
+    }
+    // on failure the reducer surfaces the error bar; keep the prompt open
+  }
+
   const canAdjust = s.kind === "preset";
 
   return (
@@ -114,7 +135,9 @@ export function Editor({ api }: { api: EditorApi }) {
           </button>
           <div className="editor-source">
             <div className="nm">{loc(s.name, lang)}</div>
-            <div className="tag">{s.kind === "preset" ? t("tag.preset") : t("tag.custom")}</div>
+            <div className="tag">
+              {s.savedId ? t("tag.saved") : s.kind === "preset" ? t("tag.preset") : t("tag.custom")}
+            </div>
           </div>
         </div>
         <div className="editor-bar-right">
@@ -224,6 +247,33 @@ export function Editor({ api }: { api: EditorApi }) {
                 </Button>
               )}
             </div>
+            {saveOpen ? (
+              <div className="save-row">
+                <input
+                  className="save-name"
+                  value={saveName}
+                  autoFocus
+                  placeholder={t("save.placeholder")}
+                  onChange={(e) => setSaveName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveScene();
+                    if (e.key === "Escape") setSaveOpen(false);
+                  }}
+                />
+                <Button variant="accent" disabled={saving} onClick={handleSaveScene}>
+                  {saving ? t("save.saving") : t("save.confirm")}
+                </Button>
+                <Button variant="ghost" disabled={saving} onClick={() => setSaveOpen(false)}>
+                  {t("save.cancel")}
+                </Button>
+              </div>
+            ) : (
+              <div className="row">
+                <Button variant="ghost" onClick={openSavePrompt}>
+                  {s.savedId ? t("save.update") : t("save.as")}
+                </Button>
+              </div>
+            )}
             {toast && <div className="toast">{toast}</div>}
           </div>
         </motion.aside>
