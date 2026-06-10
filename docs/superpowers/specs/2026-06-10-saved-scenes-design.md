@@ -16,8 +16,11 @@ finished custom scene and reuse it later from the gallery.
 1. **What a template contains:** background image + corners + occlusion mask.
    Grade/blend parameters are NOT saved — they are tuned per inserted user
    image, not per scene.
-2. **Save entry point:** custom-upload scenes only. Built-in presets keep the
-   existing Copy-corners → presets.ts workflow.
+2. **Save entry point:** both custom uploads and built-in presets. Saving a
+   preset (e.g. after painting an occlusion mask, which no bundled preset has
+   yet) creates an independent user copy in "My templates"; the built-in entry
+   itself is untouched. The developer-facing Copy-corners → presets.ts
+   workflow stays as is.
 3. **Re-save semantics:** saving an opened saved scene updates it in place
    (same id). No duplicate entries, no version history.
 4. **Storage:** IndexedDB, hand-rolled promise wrapper, no new dependency.
@@ -55,15 +58,21 @@ matching the project's no-framework style.
 
 `EditorSource` gains two optional fields:
 
-- `bgBlob?: Blob` — the original upload bytes. `openCustom` currently decodes
-  the `File` and drops it; it must now stash the `File` (a `Blob`) here so
-  saving stores original bytes instead of a canvas re-encode. `openSaved` sets
-  it from the stored record. Presets leave it undefined.
+- `bgBlob?: Blob` — the original background bytes. `openCustom` currently
+  decodes the `File` and drops it; it must now stash the `File` (a `Blob`)
+  here so saving stores original bytes instead of a canvas re-encode.
+  `openSaved` sets it from the stored record. `openPreset` leaves it
+  undefined; `saveScene` then fetches the preset's `src` (also stashed on
+  `EditorSource` as `bgSrc?: string`) to obtain the bytes at save time.
 - `savedId?: string` — identity of an already-saved template; presence means
   "update in place" on the next save.
 
-`kind` stays `"custom"` for saved scenes — once opened they behave exactly
-like a fresh custom scene (draggable corners, paintable mask, saveable).
+`kind` stays `"custom"` for saved scenes once they are reopened from "My
+templates" — they behave exactly like a fresh custom scene (draggable
+corners, paintable mask, saveable) regardless of whether they originated from
+an upload or a preset. While still in the preset editor session, saving sets
+`savedId` but `kind` remains `"preset"` (the Adjust/lock toggle keeps
+working); subsequent saves in that session update the same template.
 
 New `EditorApi` methods:
 
@@ -72,7 +81,8 @@ New `EditorApi` methods:
   via `createMaskCanvas` + `drawBaseImage` (same path presets with a `mask`
   PNG use), dispatch `OPEN` with `editable: true`, then `SET_MASK_CANVAS` if a
   mask was stored.
-- `saveScene(name: string): Promise<void>` — serialize
+- `saveScene(name: string): Promise<void>` — resolve the background bytes
+  (`source.bgBlob`, else `fetch(source.bgSrc)` for presets), serialize
   `maskCanvas.canvas.toBlob("image/png")` when the mask has been touched,
   render a ~480px JPEG thumbnail from the background image, then `putScene`
   with `id = source.savedId ?? crypto.randomUUID()`. On first save, write the
@@ -89,11 +99,12 @@ true; an untouched (all-black) canvas stores as `null`.
 
 ## UI
 
-**Editor sidebar** (rendered only when `s.kind === "custom"`):
+**Editor sidebar** (rendered for every source, custom and preset alike):
 
 - A "存为模板 / Save as template" button. Clicking reveals an inline name
-  input pre-filled with the current scene name; confirming calls
-  `saveScene(name)` and flashes a "已保存 / Saved" toast.
+  input pre-filled with the current scene name (preset names resolved through
+  `loc(name, lang)`); confirming calls `saveScene(name)` and flashes a
+  "已保存 / Saved" toast.
 - When `source.savedId` exists the button reads "更新模板 / Update template".
 - Saving requires no user image — a template is the scene itself.
 
@@ -121,6 +132,8 @@ save-failure message). All text through `t(key)` per existing convention.
   error on failure. The rest of the app is unaffected.
 - `putScene` failure (quota exceeded): caught in `saveScene`, surfaced through
   the existing error/toast mechanism with a dedicated i18n string.
+- Preset background `fetch` failure (e.g. offline): same save-failure toast;
+  nothing is written to the store.
 - Stored-record decode failure on open: surface the existing `error.load`
   path, stay in the gallery.
 
@@ -133,11 +146,11 @@ No test runner exists (per CLAUDE.md). Verification:
 - End-to-end via headless Chrome over CDP (existing harness approach):
   upload → drag corners → paint mask → save → reload → open from
   "My templates" → assert corners match and mask pixels survived the
-  round-trip; delete → section empties.
+  round-trip; delete → section empties. Repeat the save → reload → reopen
+  pass starting from a built-in preset (mask painted on the preset).
 
 ## Out of scope
 
-- Saving tweaked built-in presets as user templates.
 - Cross-device sync or file export of templates.
 - Version history / duplicates on re-save.
 - Persisting grade/blend parameters or the inserted user image.
