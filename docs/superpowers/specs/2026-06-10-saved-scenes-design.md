@@ -110,11 +110,14 @@ true; an untouched (all-black) canvas stores as `null`.
 
 **Gallery:**
 
-- New "我的模板 / My templates" section between the preset grid and the
-  upload (BYO) card. Hidden entirely when there are no saved scenes (and when
+- New "我的模板 / My templates" section rendered as its own collection block
+  below the preset collection (the BYO upload card stays the last cell of the
+  preset grid). Hidden entirely when there are no saved scenes (and when
   IndexedDB is unavailable).
-- A `useSavedScenes` hook loads the list on mount (async), exposes
-  `scenes`, `remove(id)`, and a `refresh()`.
+- A `useSavedScenes` hook loads the list on mount (async) and exposes the
+  scene list plus `remove(id)`. No refresh method is needed: the Gallery
+  remounts on every return from the editor, so the mount-time load is always
+  fresh.
 - Cards reuse the `preset-card` look; thumbnails come from
   `URL.createObjectURL(thumbBlob)`, revoked on unmount. Each card has a small
   delete button with a two-click confirm: first click flips it to a "确认删除?
