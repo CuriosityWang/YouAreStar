@@ -15,6 +15,11 @@ It walks the core flow (gallery → open preset → confirm the WebGL canvas dre
 upload an image → confirm the composite → export a PNG), prints PASS/FAIL, and
 drops screenshots in `screenshots/`.
 
+Two feature drivers extend it: [`mask-driver.mjs`](mask-driver.mjs) (brush
+occlusion mask) and [`saved-driver.mjs`](saved-driver.mjs) (saved templates:
+save → IndexedDB record + mask round-trip → reload → reopen → update-in-place
+→ delete). Run them the same way; both expect the dev server to be up.
+
 All paths below are relative to the repo root.
 
 ## Prerequisites
