@@ -8,7 +8,7 @@ import { Editor } from "./components/Editor/Editor";
 export default function App() {
   const api = useEditor();
   const { t } = useI18n();
-  const { state, openPreset, openCustom } = api;
+  const { state, openPreset, openCustom, openSaved } = api;
   const inEditor = state.view === "editor" && !!state.source;
 
   return (
@@ -32,7 +32,7 @@ export default function App() {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.35 }}
           >
-            <Gallery onOpenPreset={openPreset} onOpenCustom={openCustom} />
+            <Gallery onOpenPreset={openPreset} onOpenCustom={openCustom} onOpenSaved={openSaved} />
           </motion.div>
         )}
       </AnimatePresence>
