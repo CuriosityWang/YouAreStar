@@ -8,7 +8,16 @@ import {
   type GradeParams,
 } from "../lib/webgl/renderer";
 import { NEUTRAL_STATS, type Stats } from "../lib/color";
-import { fileToImage, imageDims, loadImage, makeThumbDataURL } from "../lib/loadImage";
+import {
+  blobToImage,
+  canvasToBlob,
+  fileToImage,
+  imageDims,
+  loadImage,
+  makeThumbBlob,
+  makeThumbDataURL,
+} from "../lib/loadImage";
+import { putScene, type SavedScene } from "../lib/savedScenes";
 import { imageStats, sampleRegionStats } from "../lib/imageStats";
 import { createMaskCanvas, drawBaseImage, type MaskCanvas } from "../lib/maskCanvas";
 
@@ -22,6 +31,14 @@ export interface EditorSource {
   bgHeight: number;
   corners: Corners;
   maskCanvas: MaskCanvas | null;
+  /** original background bytes (upload or stored template); presets resolve via bgSrc at save time */
+  bgBlob?: Blob;
+  /** public URL of a preset background, fetched on save */
+  bgSrc?: string;
+  /** id of the SavedScene this session was saved to — presence means update-in-place */
+  savedId?: string;
+  /** createdAt carried from the stored record so re-saves preserve it */
+  savedCreatedAt?: number;
 }
 
 export interface EditorState {
@@ -81,6 +98,7 @@ type Action =
   | { type: "SET_EDITABLE"; value: boolean }
   | { type: "SET_MASK_MODE"; value: boolean }
   | { type: "SET_MASK_CANVAS"; mask: MaskCanvas }
+  | { type: "MARK_SAVED"; id: string; name: string; bgBlob: Blob; createdAt: number }
   | { type: "BACK" };
 
 function reducer(state: EditorState, action: Action): EditorState {
@@ -140,6 +158,19 @@ function reducer(state: EditorState, action: Action): EditorState {
       return state.source
         ? { ...state, source: { ...state.source, maskCanvas: action.mask }, maskTouched: true }
         : state;
+    case "MARK_SAVED":
+      return state.source
+        ? {
+            ...state,
+            source: {
+              ...state.source,
+              savedId: action.id,
+              savedCreatedAt: action.createdAt,
+              name: action.name,
+              bgBlob: action.bgBlob,
+            },
+          }
+        : state;
     case "BACK":
       return { ...initialState, seed: state.seed, view: "gallery" };
     default:
@@ -152,6 +183,8 @@ export function useEditor() {
   const statsTimer = useRef<number | null>(null);
   const sourceRef = useRef(state.source);
   sourceRef.current = state.source;
+  const maskTouchedRef = useRef(state.maskTouched);
+  maskTouchedRef.current = state.maskTouched;
 
   const openPreset = useCallback(async (preset: Preset) => {
     dispatch({ type: "LOADING", value: true });
@@ -177,6 +210,7 @@ export function useEditor() {
           bgHeight,
           corners: preset.corners,
           maskCanvas,
+          bgSrc: preset.src,
         },
       });
       if (maskCanvas) dispatch({ type: "SET_MASK_CANVAS", mask: maskCanvas });
@@ -202,11 +236,84 @@ export function useEditor() {
           bgHeight,
           corners: CENTERED_QUAD,
           maskCanvas: null,
+          bgBlob: file,
         },
       });
     } catch (e) {
       console.error(e);
       dispatch({ type: "ERROR", message: "error.load" });
+    }
+  }, []);
+
+  const openSaved = useCallback(async (scene: SavedScene) => {
+    dispatch({ type: "LOADING", value: true });
+    try {
+      const bgImage = await blobToImage(scene.bgBlob);
+      const [bgWidth, bgHeight] = imageDims(bgImage);
+      let maskCanvas: MaskCanvas | null = null;
+      if (scene.maskBlob) {
+        const maskImg = await blobToImage(scene.maskBlob);
+        maskCanvas = createMaskCanvas(bgWidth, bgHeight);
+        drawBaseImage(maskCanvas, maskImg);
+      }
+      dispatch({
+        type: "OPEN",
+        editable: true,
+        source: {
+          kind: "custom",
+          name: scene.name,
+          bgImage,
+          bgWidth,
+          bgHeight,
+          corners: scene.corners,
+          maskCanvas,
+          bgBlob: scene.bgBlob,
+          savedId: scene.id,
+          savedCreatedAt: scene.createdAt,
+        },
+      });
+      if (maskCanvas) dispatch({ type: "SET_MASK_CANVAS", mask: maskCanvas });
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: "ERROR", message: "error.load" });
+    }
+  }, []);
+
+  const saveScene = useCallback(async (name: string): Promise<boolean> => {
+    const src = sourceRef.current;
+    if (!src) return false;
+    try {
+      let bgBlob = src.bgBlob;
+      if (!bgBlob) {
+        if (!src.bgSrc) throw new Error("no background bytes to save");
+        const res = await fetch(src.bgSrc);
+        if (!res.ok) throw new Error(`fetch ${src.bgSrc}: ${res.status}`);
+        bgBlob = await res.blob();
+      }
+      const maskBlob =
+        maskTouchedRef.current && src.maskCanvas
+          ? await canvasToBlob(src.maskCanvas.canvas, "image/png")
+          : null;
+      const thumbBlob = await makeThumbBlob(src.bgImage);
+      const id = src.savedId ?? crypto.randomUUID();
+      const now = Date.now();
+      const createdAt = src.savedCreatedAt ?? now;
+      await putScene({
+        id,
+        name,
+        bgBlob,
+        maskBlob,
+        thumbBlob,
+        corners: src.corners,
+        createdAt,
+        updatedAt: now,
+      });
+      dispatch({ type: "MARK_SAVED", id, name, bgBlob, createdAt });
+      return true;
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: "ERROR", message: "error.save" });
+      return false;
     }
   }, []);
 
@@ -282,6 +389,8 @@ export function useEditor() {
     state,
     openPreset,
     openCustom,
+    openSaved,
+    saveScene,
     setUserFile,
     clearUser,
     clearError,
