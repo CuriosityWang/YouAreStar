@@ -124,6 +124,24 @@ const STRINGS = {
   "mask.view.result": { en: "Result", zh: "结果" },
   "mask.view.mask": { en: "Mask", zh: "蒙版" },
   "mask.fit": { en: "Fit", zh: "适应" },
+
+  "saved.title": { en: "My Templates", zh: "我的模板" },
+  "saved.delete": { en: "Delete template", zh: "删除模板" },
+  "saved.confirmDelete": { en: "Delete?", zh: "确认删除?" },
+  "tag.saved": { en: "Saved template", zh: "已存模板" },
+
+  "save.as": { en: "Save as template", zh: "存为模板" },
+  "save.update": { en: "Update template", zh: "更新模板" },
+  "save.placeholder": { en: "Template name", zh: "模板名称" },
+  "save.confirm": { en: "Save", zh: "保存" },
+  "save.cancel": { en: "Cancel", zh: "取消" },
+  "save.saving": { en: "Saving…", zh: "保存中…" },
+  "toast.sceneSaved": { en: "Template saved", zh: "模板已保存" },
+
+  "error.save": {
+    en: "Couldn't save the template. Browser storage may be full or blocked.",
+    zh: "模板保存失败，浏览器存储可能已满或被禁用。",
+  },
 } satisfies Record<string, LocalizedString>;
 
 export type TKey = keyof typeof STRINGS;
