@@ -50,4 +50,4 @@ Pure static site: `npm run build` produces `dist/`; serve the **contents** of `d
 
 ## 📄 License
 
-Unspecified (private). To open-source, add a `LICENSE` (e.g. MIT).
+[MIT](./LICENSE) © Wang Xin
