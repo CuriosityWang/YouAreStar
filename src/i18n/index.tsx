@@ -182,7 +182,7 @@ function initialLang(): Lang {
   } catch {
     /* ignore */
   }
-  return navigator.language?.toLowerCase().startsWith("zh") ? "zh" : "en";
+  return "zh"; // default to Chinese; an explicit choice is remembered above
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {

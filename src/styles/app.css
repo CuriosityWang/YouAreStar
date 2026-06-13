@@ -323,35 +323,51 @@
 .corner-layer { position: absolute; inset: 0; z-index: 5; }
 .corner-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .corner-quad { fill: rgba(210, 60, 37, 0.06); stroke: var(--vermilion); stroke-width: 1.5; stroke-dasharray: 6 5; }
+/* Transparent hit area so nothing covers the corner it marks — only the center
+   dot is drawn, which is the precise point the user aligns to. */
 .handle {
   position: absolute;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
   border-radius: 50%;
-  background: var(--paper-2);
-  border: 2px solid var(--vermilion);
-  box-shadow: 0 2px 8px rgba(27, 23, 20, 0.35);
+  background: transparent;
   cursor: grab;
   touch-action: none;
   display: grid;
   place-items: center;
   transition: transform 0.1s var(--ease);
 }
-.handle::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--vermilion); }
-.handle:hover { transform: scale(1.15); }
-.handle:active { cursor: grabbing; transform: scale(1.05); }
+/* the only visible mark: a small high-contrast dot (white ring + dark halo so
+   it reads on either light or dark imagery). */
+.handle::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--vermilion);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(27, 23, 20, 0.55), 0 1px 4px rgba(27, 23, 20, 0.45);
+}
+.handle:hover { transform: scale(1.3); }
+.handle:active { cursor: grabbing; transform: scale(1.12); }
 .handle-tag {
   position: absolute;
-  top: -22px;
+  top: -21px;
   left: 50%;
   transform: translateX(-50%);
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--ink) 80%, transparent);
   font-family: var(--mono);
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: var(--vermilion);
+  color: var(--paper-2);
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s var(--ease);
 }
+.handle:hover .handle-tag { opacity: 1; }
 
 /* sidebar */
 .sidebar {
@@ -493,6 +509,22 @@
   border-radius: 50%;
   pointer-events: none;
 }
+/* inner ring marks the hard core: its diameter = outer × hardness, so a soft
+   edge (low hardness) shows a small core inside the large outer ring, and a
+   crisp edge (hardness 1) collapses it onto the outer ring. */
+.mask-cursor::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(100% * var(--hardness, 1));
+  height: calc(100% * var(--hardness, 1));
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.32);
+  border-radius: 50%;
+  pointer-events: none;
+}
 /* center dot — a precise aim point at the brush center */
 .mask-cursor::after {
   content: "";
@@ -510,6 +542,7 @@
   border-color: var(--vermilion);
   border-style: dashed;
 }
+.mask-layer[data-erase="true"] .mask-cursor::before { border-color: var(--vermilion); }
 
 /* --- Publish official template modal (admin, dev-only) --- */
 .publish-scrim {

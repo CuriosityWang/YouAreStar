@@ -59,6 +59,10 @@ export interface MaskTool {
   cursor: { x: number; y: number; visible: boolean };
   displayRadius: number;
   spaceHeld: boolean;
+  /** when true, show the brush ring centered on the canvas (e.g. while a size/
+   *  edge slider is being dragged and the pointer is off the canvas). */
+  previewing: boolean;
+  setPreviewing: (b: boolean) => void;
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerMove: (e: React.PointerEvent) => void;
   onPointerUp: (e: React.PointerEvent) => void;
@@ -75,6 +79,7 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
   const [viewMode, setViewModeState] = useState<MaskViewMode>("overlay");
   const [view, setView] = useState<ViewTransform>({ zoom: 1, panX: 0, panY: 0 });
   const [cursor, setCursor] = useState({ x: 0, y: 0, visible: false });
+  const [previewing, setPreviewing] = useState(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const [altHeld, setAltHeld] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
@@ -431,6 +436,7 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     setView({ zoom: 1, panX: 0, panY: 0 });
     setCanUndo(false);
     setCanRedo(false);
+    setPreviewing(false);
   }, [active]);
 
   // keep the active-mask ref in sync with the source's mask canvas (covers
@@ -462,6 +468,8 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     cursor,
     displayRadius,
     spaceHeld,
+    previewing,
+    setPreviewing,
     onPointerDown,
     onPointerMove,
     onPointerUp,
