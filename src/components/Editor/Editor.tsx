@@ -8,6 +8,10 @@ import { LangToggle } from "../ui/LangToggle";
 import { ColorMatchPanel } from "../Controls/ColorMatchPanel";
 import { BlendPanel } from "../Controls/BlendPanel";
 import { EditorStage } from "./EditorStage";
+import { PublishModal, type PublishToastKey } from "./PublishModal";
+import { IS_ADMIN } from "../../lib/admin";
+import { PRESETS } from "../../data/presets";
+import type { PublishResult } from "../../lib/publishTemplate";
 
 const slug = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "scene";
@@ -26,6 +30,7 @@ export function Editor({ api }: { api: EditorApi }) {
     saveScene,
     setEditable,
     setMaskMode,
+    importMask,
     backToGallery,
   } = api;
   const { t, lang } = useI18n();
@@ -36,6 +41,7 @@ export function Editor({ api }: { api: EditorApi }) {
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
   const toastTimer = useRef<number | null>(null);
   const baseName = typeof s.name === "string" ? s.name : s.name.en;
 
@@ -121,6 +127,12 @@ export function Editor({ api }: { api: EditorApi }) {
       flash(t("toast.sceneSaved"));
     }
     // on failure the reducer surfaces the error bar; keep the prompt open
+  }
+
+  function handlePublished(_result: PublishResult, key: PublishToastKey) {
+    setPublishOpen(false);
+    flash(t(key));
+    backToGallery();
   }
 
   const canAdjust = s.kind === "preset";
@@ -272,12 +284,28 @@ export function Editor({ api }: { api: EditorApi }) {
                 <Button variant="ghost" onClick={openSavePrompt}>
                   {s.savedId ? t("save.update") : t("save.as")}
                 </Button>
+                {IS_ADMIN && (
+                  <Button variant="ghost" onClick={() => setPublishOpen(true)}>
+                    {t("publish.open")}
+                  </Button>
+                )}
               </div>
             )}
             {toast && <div className="toast">{toast}</div>}
           </div>
         </motion.aside>
       </div>
+
+      {IS_ADMIN && publishOpen && (
+        <PublishModal
+          source={s}
+          maskTouched={state.maskTouched}
+          knownPresetIds={PRESETS.map((p) => p.id)}
+          onImportMask={importMask}
+          onClose={() => setPublishOpen(false)}
+          onPublished={handlePublished}
+        />
+      )}
     </div>
   );
 }

@@ -43,7 +43,6 @@
   line-height: 1.55;
   color: var(--ink-soft);
 }
-.masthead-lede b { font-weight: 600; color: var(--ink); }
 
 /* ---------- collection ---------- */
 .collection { padding-bottom: 96px; }
@@ -510,4 +509,100 @@
 .mask-layer[data-erase="true"] .mask-cursor {
   border-color: var(--vermilion);
   border-style: dashed;
+}
+
+/* --- Publish official template modal (admin, dev-only) --- */
+.publish-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(27, 23, 20, 0.42);
+  backdrop-filter: blur(2px);
+}
+.publish-modal {
+  width: min(440px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 22px 22px 18px;
+  background: var(--paper);
+  border: var(--rule) solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(27, 23, 20, 0.26);
+}
+.publish-h {
+  margin: 0 0 16px;
+  font-family: var(--display);
+  font-size: 20px;
+  color: var(--ink);
+}
+.publish-field {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 11px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.publish-field input {
+  font: inherit;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: normal;
+  text-transform: none;
+  padding: 8px 12px;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: var(--rule) solid var(--hairline-2);
+  border-radius: var(--radius);
+}
+.publish-field input:focus {
+  outline: none;
+  border-color: var(--vermilion);
+}
+.publish-note {
+  margin: -4px 0 12px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.publish-mask {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+.publish-mask-status {
+  font-size: 13px;
+  color: var(--ink);
+}
+.publish-import {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--vermilion);
+}
+.publish-import input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.publish-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--vermilion);
+}
+.publish-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
 }
