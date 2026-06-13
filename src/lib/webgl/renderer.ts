@@ -37,7 +37,7 @@ export const DEFAULT_BLEND: BlendParams = {
   mode: "normal",
   opacity: 1,
   feather: 0.04,
-  grain: 0.2,
+  grain: 0.1,
 };
 
 export interface RenderState {
