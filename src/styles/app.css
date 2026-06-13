@@ -181,7 +181,7 @@
      live in a bottom sheet, so the page itself never scrolls. --sheet-h is the
      expanded sheet height, shared by the sheet and the stage's open-state reserve
      (below) so the two stay in lock-step. */
-  .editor { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; --sheet-h: 52dvh; }
+  .editor { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; --sheet-h: 40dvh; }
 }
 /* sticky region holding the nav row + (when present) the error banner, so the
    banner is always pinned right below the nav instead of scrolling behind it */
@@ -462,7 +462,7 @@
     /* expanded height; the stage reserves this same height (--sheet-h) so the whole
        preview stays visible above the sheet and the color/blend sliders can be judged
        against it live. The body scrolls to reach the rest of the controls. */
-    height: 52vh;
+    height: 40vh;
     height: var(--sheet-h);
     max-height: none;
     border-left: none;
