@@ -24,6 +24,9 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
+# Local deploy config (server IP / user / path — never commit)
+deploy.env
+
 # Editor / OS
 .DS_Store
 .idea/
