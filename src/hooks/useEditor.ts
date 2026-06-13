@@ -367,6 +367,21 @@ export function useEditor() {
     dispatch({ type: "SET_MASK_CANVAS", mask });
     return mask;
   }, []);
+  const importMask = useCallback(async (file: File) => {
+    const src = sourceRef.current;
+    if (!src) return;
+    try {
+      const img = await fileToImage(file);
+      // Fresh canvas → new reference so EditorStage re-uploads the texture.
+      // Import replaces any current paint (load-a-mask-file = replace).
+      const mask = createMaskCanvas(src.bgWidth, src.bgHeight);
+      drawBaseImage(mask, img);
+      dispatch({ type: "SET_MASK_CANVAS", mask });
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: "ERROR", message: "error.load" });
+    }
+  }, []);
   const backToGallery = useCallback(() => dispatch({ type: "BACK" }), []);
 
   // Recompute target (billboard-region) stats when the background or corners
@@ -401,6 +416,7 @@ export function useEditor() {
     setEditable,
     setMaskMode,
     ensureMask,
+    importMask,
     backToGallery,
   };
 }
