@@ -219,6 +219,43 @@
 }
 .editor-source .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--vermilion); text-transform: uppercase; }
 
+/* ---- phone reflow: editor top bar (<=560px) ----
+   On narrow phones the single-row bar crushes — the back text wraps to a vertical
+   glyph column and the title truncates to one character. Reflow to two rows:
+   row 1 = back-arrow + title, row 2 = Adjust/Mask/Lang. Desktop (>900) and tablet
+   (561-900) are untouched: every rule is inside the max-width:560px query. */
+@media (max-width: 560px) {
+  .editor-bar {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding: 12px 16px;
+  }
+  /* row 1: back-arrow + title share the full width */
+  .editor-bar-left { flex: 1 1 100%; gap: 12px; min-width: 0; }
+  /* collapse the back control to its arrow; the label span is visually hidden */
+  .editor-back { flex: none; gap: 0; position: relative; }
+  .editor-back .editor-back-label {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  /* enlarge the arrow's tap target without changing its look */
+  .editor-back::before { content: ""; position: absolute; inset: -10px; }
+  /* title now owns the row, so it ellipsizes gracefully instead of collapsing */
+  .editor-source { flex: 1 1 0; min-width: 0; }
+  .editor-source .nm { font-size: 17px; }
+  /* row 2: the controls drop to their own right-aligned line */
+  .editor-bar-right { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+}
+/* narrowest phones: drop the tiny PRESET/CUSTOM tag for even more title room */
+@media (max-width: 380px) {
+  .editor-source .tag { display: none; }
+}
+
 .editor-main {
   flex: 1;
   display: grid;
@@ -226,7 +263,12 @@
   min-height: 0;
 }
 @media (max-width: 900px) {
-  .editor-main { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr), not 1fr: a bare `1fr` track is minmax(auto, 1fr), whose `auto`
+     minimum is the cell's max-content. In mask mode the in-flow toolbar's wide
+     (flex-wrap:nowrap) max-content would blow the track out past the screen,
+     expanding the mobile layout viewport and re-inflating the canvas. minmax(0,…)
+     lets the track shrink to the column so the toolbar scrolls internally. */
+  .editor-main { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* stage */
@@ -241,6 +283,26 @@
     repeating-linear-gradient(45deg, transparent 0 11px, rgba(27,23,20,0.012) 11px 12px),
     var(--paper-sunk);
   min-height: 0;
+}
+/* Mobile (single-column) drops the stage's height anchor. On desktop the sidebar's
+   max-height stretches the shared grid row and the stage fills it; stacked, the stage
+   row is `auto` and its height feeds back from the canvas that EditorStage's fit()
+   sizes from this very element — a circular dependency that collapses the canvas to
+   ~30px (measured). A definite lower bound breaks the loop. min-height (not height)
+   lets the frame still grow to fit the in-flow mask toolbar; dvh tracks the URL bar.
+   Placed AFTER the base rule so it wins the cascade at equal specificity. */
+@media (max-width: 900px) {
+  /* align-items:stretch (vs the base center) makes the frame take the column's
+     definite width instead of shrink-wrapping to its content. Without this the
+     in-flow mask toolbar's wide (flex-wrap:nowrap) min-content would stretch the
+     frame ~800px, overflow the column, and balloon the mobile layout viewport —
+     which fed back into fit() and re-inflated the canvas. Bounded to the column,
+     the toolbar scrolls internally instead. justify-content:center still centers
+     the frame vertically. */
+  .stage-wrap { min-height: 70vh; min-height: 70dvh; align-items: stretch; overflow-x: clip; }
+  /* the page scrolls on mobile, so let the frame grow to its content height
+     (canvas + placard + the now in-flow mask toolbar) rather than cap to the wrap. */
+  .stage-frame { max-height: none; }
 }
 .stage-frame {
   position: relative;

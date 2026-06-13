@@ -111,6 +111,13 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
   const scratchRef = useRef<HTMLCanvasElement | null>(null);
   const undoStack = useRef<UndoEntry[]>([]);
   const redoStack = useRef<UndoEntry[]>([]);
+  // multi-touch: every live pointer (used to detect a 2-finger gesture) and the
+  // pinch state while two touches are zooming/panning the stage.
+  const activePointers = useRef<Map<number, { x: number; y: number; type: string }>>(new Map());
+  const pinch = useRef<
+    | null
+    | { id1: number; id2: number; startDist: number; startMidX: number; startMidY: number; startView: ViewTransform }
+  >(null);
 
   function getScratch(): HTMLCanvasElement {
     if (!scratchRef.current) scratchRef.current = document.createElement("canvas");
@@ -221,6 +228,29 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     renderLive();
   }, [api.state.source, ensureUploaded, repaintOverlay, renderLive]);
 
+  // Roll back an in-progress single-finger stroke when a 2nd finger lands (pinch):
+  // restore the pre-stroke pixels, cancel the queued GPU flush, and drop the stroke
+  // state so no stray dab is committed to history.
+  const abortStroke = useCallback(() => {
+    if (rafId.current != null) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = null;
+    }
+    pendingDirty.current = null;
+    const mask = activeMask.current;
+    const before = beforeFull.current;
+    painting.current = false;
+    panning.current = null;
+    last.current = null;
+    strokeDirty.current = null;
+    beforeFull.current = null;
+    if (mask && before) {
+      mask.ctx.putImageData(before, 0, 0);
+      uploadedRef.current = false;
+      flushFull();
+    }
+  }, [flushFull]);
+
   const mapPointer = useCallback(
     (e: React.PointerEvent | PointerEvent) => {
       const holder = holderRef.current;
@@ -234,6 +264,44 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (!active) return;
+      activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY, type: e.pointerType });
+      // already pinching: ignore any further fingers so they can't start a stray stroke
+      if (pinch.current) return;
+      // a 2nd touch turns an in-progress paint into a pinch-zoom / two-finger pan
+      let touchCount = 0;
+      activePointers.current.forEach((p) => {
+        if (p.type === "touch") touchCount++;
+      });
+      if (e.pointerType === "touch" && touchCount === 2) {
+        abortStroke(); // discard the first finger's dab — this gesture is a pinch, not a stroke
+        const pts: { id: number; x: number; y: number }[] = [];
+        activePointers.current.forEach((p, id) => {
+          if (p.type === "touch") pts.push({ id, x: p.x, y: p.y });
+        });
+        const [a, b] = pts;
+        if (!a || !b) return;
+        // Capture BOTH fingers to the layer (finger 1 already is, from the paint
+        // path; capture finger 2 too). This guarantees every up/cancel is delivered
+        // here even if a finger lifts off-element — otherwise a lost up would leave a
+        // stale pointer in the map that makes the next single-finger touch read as a
+        // pinch, wedging painting until mask mode is toggled.
+        try {
+          (e.target as Element).setPointerCapture?.(e.pointerId);
+        } catch {
+          /* ignore */
+        }
+        const rect = holderRef.current?.getBoundingClientRect();
+        pinch.current = {
+          id1: a.id,
+          id2: b.id,
+          startDist: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)),
+          startMidX: (a.x + b.x) / 2 - (rect?.left ?? 0),
+          startMidY: (a.y + b.y) / 2 - (rect?.top ?? 0),
+          startView: { ...viewRef.current },
+        };
+        setCursor((c) => ({ ...c, visible: false }));
+        return;
+      }
       (e.target as Element).setPointerCapture?.(e.pointerId);
       // pan with Space or middle mouse
       if (spaceHeld || e.button === 1) {
@@ -256,12 +324,46 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
       strokeDirty.current = growRect(strokeDirty.current, p.x, p.y, rad);
       scheduleFlush({ x: p.x - rad, y: p.y - rad, w: rad * 2, h: rad * 2 });
     },
-    [active, spaceHeld, api, mapPointer, scheduleFlush],
+    [active, spaceHeld, api, mapPointer, scheduleFlush, abortStroke, holderRef],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!active) return;
+      const tracked = activePointers.current.get(e.pointerId);
+      if (tracked) {
+        tracked.x = e.clientX;
+        tracked.y = e.clientY;
+      }
+      // two-finger pinch: zoom toward the gesture midpoint, pan with its drift.
+      // Reuses the exact wheel-zoom primitives so feel + clamping match.
+      if (pinch.current) {
+        const a = activePointers.current.get(pinch.current.id1);
+        const b = activePointers.current.get(pinch.current.id2);
+        const ph = holderRef.current;
+        if (!a || !b || !ph) return;
+        const r = ph.getBoundingClientRect();
+        const liveDist = Math.hypot(b.x - a.x, b.y - a.y);
+        const nextZoom = clampZoom(pinch.current.startView.zoom * (liveDist / pinch.current.startDist));
+        const cx = (a.x + b.x) / 2 - r.left;
+        const cy = (a.y + b.y) / 2 - r.top;
+        // Anchor the zoom at the START midpoint, then add the live midpoint drift
+        // below. Anchoring at the LIVE midpoint instead would double-count the pan
+        // during a simultaneous zoom+move, sliding the image out from under the
+        // fingers by drift*(zoomRatio-1).
+        const zoomed = zoomToward(pinch.current.startView, nextZoom, pinch.current.startMidX, pinch.current.startMidY);
+        const next = clampPan(
+          {
+            zoom: zoomed.zoom,
+            panX: zoomed.panX + (cx - pinch.current.startMidX),
+            panY: zoomed.panY + (cy - pinch.current.startMidY),
+          },
+          displaySize.w,
+          displaySize.h,
+        );
+        setView(next);
+        return;
+      }
       const holder = holderRef.current;
       if (holder) {
         const rect = holder.getBoundingClientRect();
@@ -297,7 +399,15 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     [active, holderRef, displaySize.w, displaySize.h, api.state.source, mapPointer, scheduleFlush],
   );
 
-  const onPointerUp = useCallback(() => {
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    activePointers.current.delete(e.pointerId);
+    // a pinch ends when either of its two fingers lifts; the stroke was already
+    // aborted, so just clear pinch state without resuming paint.
+    if (pinch.current && (e.pointerId === pinch.current.id1 || e.pointerId === pinch.current.id2)) {
+      pinch.current = null;
+      panning.current = null;
+      return;
+    }
     panning.current = null;
     if (!painting.current) return;
     painting.current = false;
@@ -437,6 +547,8 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     setCanUndo(false);
     setCanRedo(false);
     setPreviewing(false);
+    activePointers.current.clear();
+    pinch.current = null;
   }, [active]);
 
   // keep the active-mask ref in sync with the source's mask canvas (covers

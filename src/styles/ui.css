@@ -223,3 +223,42 @@
   min-width: 38px;
   text-align: right;
 }
+
+/* ---- phone reflow: mask toolbar becomes an in-flow bottom strip (<=560px) ----
+   On desktop the toolbar floats (absolute) over the canvas, which is fine on a
+   large stage but covers a small phone canvas and wraps into many rows. The toolbar
+   is a child of .stage-frame (position:relative), so switching it to static drops
+   it into normal flow directly below the canvas and above the placard — no JS / DOM
+   move. Then it's one horizontally-scrollable strip with >=40px touch targets.
+   Scoped to max-width:560px so desktop and tablet are byte-identical. */
+@media (max-width: 560px) {
+  .mask-toolbar {
+    position: static;
+    transform: none;
+    left: auto;
+    bottom: auto;
+    margin-top: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    /* no longer floating over imagery — drop the heavy blur/shadow */
+    backdrop-filter: none;
+    background: var(--paper-2);
+    box-shadow: none;
+  }
+  /* keep each control group whole while the strip scrolls */
+  .mask-toolbar .mt-group,
+  .mask-toolbar .mt-brush { flex: none; }
+  .mask-toolbar .mt-btn { min-height: 40px; padding: 8px 12px; border-radius: 8px; }
+  .mask-toolbar .mt-slider { min-height: 40px; }
+  .mask-toolbar .mt-slider input[type="range"] { width: 120px; height: 24px; }
+  .mask-toolbar .mt-brush-preview { width: 40px; height: 40px; }
+  .mask-toolbar .mt-zoom { white-space: nowrap; }
+}

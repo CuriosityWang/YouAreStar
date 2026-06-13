@@ -143,7 +143,7 @@ export function Editor({ api }: { api: EditorApi }) {
       <div className="editor-bar">
         <div className="editor-bar-left">
           <button className="editor-back" onClick={backToGallery}>
-            ← {t("editor.back")}
+            ← <span className="editor-back-label">{t("editor.back")}</span>
           </button>
           <div className="editor-source">
             <div className="nm">{loc(s.name, lang)}</div>
