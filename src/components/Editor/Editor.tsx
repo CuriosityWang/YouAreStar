@@ -266,7 +266,12 @@ export function Editor({ api }: { api: EditorApi }) {
   const mode = state.maskMode ? "mask" : inAdjust ? "adjust" : undefined;
 
   return (
-    <div className="editor" ref={editorRef} data-mode={mode}>
+    <div
+      className="editor"
+      ref={editorRef}
+      data-mode={mode}
+      data-sheet={isMobile ? (sheetOpen ? "open" : "peek") : undefined}
+    >
       <div className="editor-top">
         <div className="editor-bar">
           <div className="editor-bar-left">

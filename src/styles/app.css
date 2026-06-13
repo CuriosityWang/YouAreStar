@@ -178,8 +178,10 @@
 .editor { display: flex; flex-direction: column; min-height: 100vh; }
 @media (max-width: 900px) {
   /* mobile = a fixed one-screen app: the stage fills the viewport and the controls
-     live in a bottom-sheet overlay, so the page itself never scrolls. */
-  .editor { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+     live in a bottom sheet, so the page itself never scrolls. --sheet-h is the
+     expanded sheet height, shared by the sheet and the stage's open-state reserve
+     (below) so the two stay in lock-step. */
+  .editor { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; --sheet-h: 52dvh; }
 }
 /* sticky region holding the nav row + (when present) the error banner, so the
    banner is always pinned right below the nav instead of scrolling behind it */
@@ -230,13 +232,15 @@
    row 1 = back-arrow + title, row 2 = Adjust/Mask/Lang. Desktop (>900) and tablet
    (561-900) are untouched: every rule is inside the max-width:560px query. */
 @media (max-width: 560px) {
+  /* Single row: back-arrow + title + language. (Adjust/Mask moved into the sheet's
+     Advanced section, so the old two-row reflow just wasted vertical space the
+     preview can use.) */
   .editor-bar {
-    flex-wrap: wrap;
-    gap: 10px 12px;
+    flex-wrap: nowrap;
+    gap: 12px;
     padding: 12px 16px;
   }
-  /* row 1: back-arrow + title share the full width */
-  .editor-bar-left { flex: 1 1 100%; gap: 12px; min-width: 0; }
+  .editor-bar-left { flex: 1 1 auto; gap: 12px; min-width: 0; }
   /* collapse the back control to its arrow; the label span is visually hidden */
   .editor-back { flex: none; gap: 0; position: relative; }
   .editor-back .editor-back-label {
@@ -250,11 +254,10 @@
   }
   /* enlarge the arrow's tap target without changing its look */
   .editor-back::before { content: ""; position: absolute; inset: -10px; }
-  /* title now owns the row, so it ellipsizes gracefully instead of collapsing */
+  /* title takes the remaining width and ellipsizes gracefully */
   .editor-source { flex: 1 1 0; min-width: 0; }
   .editor-source .nm { font-size: 17px; }
-  /* row 2: the controls drop to their own right-aligned line */
-  .editor-bar-right { flex: 1 1 100%; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+  .editor-bar-right { flex: none; }
 }
 /* narrowest phones: drop the tiny PRESET/CUSTOM tag for even more title room */
 @media (max-width: 380px) {
@@ -301,6 +304,11 @@
     overflow-x: clip;
   }
   .stage-frame { max-height: none; }
+  /* When the sheet is expanded, reserve its full height so the stage shrinks the
+     preview to fit ABOVE the sheet — the whole composite stays visible (smaller)
+     and updates live while the color/blend sliders are dragged, instead of being
+     covered by the sheet. Higher specificity beats the base padding-bottom. */
+  .editor[data-sheet="open"] .stage-wrap { padding-bottom: var(--sheet-h); }
 }
 .stage-frame {
   position: relative;
@@ -451,11 +459,11 @@
     left: 0;
     right: 0;
     bottom: 0;
-    /* expanded height leaves a strip of the preview visible above the sheet so the
-       color-match sliders can be judged against the image while dragging; the body
-       scrolls to reach the rest of the controls. */
-    height: 64vh;
-    height: 64dvh;
+    /* expanded height; the stage reserves this same height (--sheet-h) so the whole
+       preview stays visible above the sheet and the color/blend sliders can be judged
+       against it live. The body scrolls to reach the rest of the controls. */
+    height: 52vh;
+    height: var(--sheet-h);
     max-height: none;
     border-left: none;
     border-top: var(--rule) solid var(--hairline-2);
