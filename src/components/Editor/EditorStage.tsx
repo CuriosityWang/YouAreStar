@@ -221,7 +221,6 @@ export function EditorStage({
             </div>
           )}
         </div>
-        {maskMode && size.w > 0 && <MaskToolbar tool={tool} />}
         <div className="stage-placard">
           <span className="pl-name">{loc(source.name, lang)}</span>
           <span className="pl-dim">
@@ -229,6 +228,7 @@ export function EditorStage({
           </span>
         </div>
       </div>
+      {maskMode && size.w > 0 && <MaskToolbar tool={tool} />}
     </div>
   );
 }

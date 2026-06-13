@@ -1,12 +1,73 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import type { MaskTool, MaskViewMode } from "../../hooks/useMaskTool";
 import { useI18n } from "../../i18n";
 
 const VIEW_MODES: MaskViewMode[] = ["overlay", "result", "mask"];
 
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
 export function MaskToolbar({ tool }: { tool: MaskTool }) {
   const { t } = useI18n();
+  const ref = useRef<HTMLDivElement>(null);
+  // The panel floats over the stage and can be dragged anywhere within it.
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const viewKey = (m: MaskViewMode) =>
     m === "overlay" ? "mask.view.overlay" : m === "result" ? "mask.view.result" : "mask.view.mask";
+
+  // Default landing spot: the largest blank margin around the framed image —
+  // the right margin for tall scenes, below the frame for wide ones, else the
+  // bottom-right corner. The user can then drag it wherever they like.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const wrap = el?.offsetParent as HTMLElement | null;
+    if (!el || !wrap) return;
+    const frame = wrap.querySelector(".stage-frame") as HTMLElement | null;
+    const W = wrap.clientWidth;
+    const H = wrap.clientHeight;
+    const pw = el.offsetWidth;
+    const ph = el.offsetHeight;
+    const side = (W - (frame?.offsetWidth ?? W)) / 2;
+    const below = (H - (frame?.offsetHeight ?? H)) / 2;
+    let x: number;
+    let y: number;
+    if (side >= pw + 16) {
+      x = W - side / 2 - pw / 2;
+      y = (H - ph) / 2;
+    } else if (below >= ph + 12) {
+      x = (W - pw) / 2;
+      y = H - below / 2 - ph / 2;
+    } else {
+      x = W - pw - 16;
+      y = H - ph - 16;
+    }
+    setPos({ x: clamp(x, 8, W - pw - 8), y: clamp(y, 8, H - ph - 8) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function startDrag(e: React.PointerEvent) {
+    const el = ref.current;
+    const wrap = el?.offsetParent as HTMLElement | null;
+    if (!el || !wrap) return;
+    e.preventDefault();
+    const r = el.getBoundingClientRect();
+    const grabX = e.clientX - r.left;
+    const grabY = e.clientY - r.top;
+    const onMove = (ev: PointerEvent) => {
+      const wr = wrap.getBoundingClientRect();
+      const pw = el.offsetWidth;
+      const ph = el.offsetHeight;
+      setPos({
+        x: clamp(ev.clientX - wr.left - grabX, 8, wr.width - pw - 8),
+        y: clamp(ev.clientY - wr.top - grabY, 8, wr.height - ph - 8),
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
 
   // Live brush swatch: diameter tracks size (relative within the box) and the
   // radial gradient's solid core tracks edge hardness — the same falloff the
@@ -27,7 +88,16 @@ export function MaskToolbar({ tool }: { tool: MaskTool }) {
   };
 
   return (
-    <div className="mask-toolbar" onPointerDown={(e) => e.stopPropagation()}>
+    <div
+      className="mask-toolbar"
+      ref={ref}
+      style={{ left: pos?.x ?? 0, top: pos?.y ?? 0, visibility: pos ? "visible" : "hidden" }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <div className="mt-grip" onPointerDown={startDrag} title={t("mask.move")} aria-label={t("mask.move")}>
+        ⠿⠿⠿
+      </div>
+
       <div className="mt-group">
         <button
           type="button"

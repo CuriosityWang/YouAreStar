@@ -289,19 +289,19 @@
    row is `auto` and its height feeds back from the canvas that EditorStage's fit()
    sizes from this very element — a circular dependency that collapses the canvas to
    ~30px (measured). A definite lower bound breaks the loop. min-height (not height)
-   lets the frame still grow to fit the in-flow mask toolbar; dvh tracks the URL bar.
-   Placed AFTER the base rule so it wins the cascade at equal specificity. */
+   lets the stage grow for the in-flow mask toolbar that sits below the frame on
+   phones; dvh tracks the URL bar. Placed AFTER the base rule so it wins the cascade. */
 @media (max-width: 900px) {
-  /* align-items:stretch (vs the base center) makes the frame take the column's
-     definite width instead of shrink-wrapping to its content. Without this the
-     in-flow mask toolbar's wide (flex-wrap:nowrap) min-content would stretch the
-     frame ~800px, overflow the column, and balloon the mobile layout viewport —
-     which fed back into fit() and re-inflated the canvas. Bounded to the column,
-     the toolbar scrolls internally instead. justify-content:center still centers
-     the frame vertically. */
+  /* align-items:stretch (vs the base center) makes the stage's children take the
+     column's definite width instead of shrink-wrapping to content. Without it the
+     in-flow mask toolbar (a sibling of the frame on phones) would shrink-wrap to its
+     wide flex-wrap:nowrap min-content, overflow the column, and balloon the mobile
+     layout viewport — which fed back into fit() and re-inflated the canvas. Bounded
+     to the column it scrolls internally. justify-content:center still centers
+     vertically. overflow-x:clip is belt-and-suspenders against horizontal page scroll. */
   .stage-wrap { min-height: 70vh; min-height: 70dvh; align-items: stretch; overflow-x: clip; }
-  /* the page scrolls on mobile, so let the frame grow to its content height
-     (canvas + placard + the now in-flow mask toolbar) rather than cap to the wrap. */
+  /* the wrap now also holds the in-flow toolbar below it, so let the frame size to
+     its own content (canvas + placard) rather than cap to the (taller) wrap. */
   .stage-frame { max-height: none; }
 }
 .stage-frame {

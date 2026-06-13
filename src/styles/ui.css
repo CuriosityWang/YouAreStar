@@ -129,22 +129,37 @@
 /* ---- Mask toolbar ---- */
 .mask-toolbar {
   position: absolute;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  z-index: 6;
+  /* left/top set inline from drag state; the panel floats over the stage */
+  z-index: 12;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 14px;
-  padding: 8px 12px;
-  max-width: calc(100% - 28px);
-  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  gap: 9px 12px;
+  padding: 2px 12px 11px;
+  width: 240px;
+  background: color-mix(in srgb, var(--paper) 93%, transparent);
   backdrop-filter: blur(8px);
   border: var(--rule) solid var(--hairline-2);
   border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
+/* full-width drag handle across the top of the floating palette */
+.mask-toolbar .mt-grip {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 3px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.mask-toolbar .mt-grip:active { cursor: grabbing; color: var(--ink); }
 .mask-toolbar .mt-group {
   display: inline-flex;
   gap: 4px;
@@ -225,22 +240,24 @@
 }
 
 /* ---- phone reflow: mask toolbar becomes an in-flow bottom strip (<=560px) ----
-   On desktop the toolbar floats (absolute) over the canvas, which is fine on a
-   large stage but covers a small phone canvas and wraps into many rows. The toolbar
-   is a child of .stage-frame (position:relative), so switching it to static drops
-   it into normal flow directly below the canvas and above the placard — no JS / DOM
-   move. Then it's one horizontally-scrollable strip with >=40px touch targets.
-   Scoped to max-width:560px so desktop and tablet are byte-identical. */
+   On desktop the toolbar is a draggable floating palette (absolute, child of
+   .stage-wrap). On a phone a 240px palette dragged over a ~320px canvas is fiddly
+   and covers the image, so override it to a static, full-width, horizontally
+   scrollable strip that flows below the stage frame with >=40px touch targets.
+   These rules win over the floating-palette base by source order at equal
+   specificity; scoped to max-width:560px so desktop/tablet stay byte-identical. */
 @media (max-width: 560px) {
   .mask-toolbar {
     position: static;
     transform: none;
     left: auto;
+    top: auto;
     bottom: auto;
     margin-top: 12px;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    visibility: visible; /* override the palette's hidden-until-positioned inline style */
     flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
@@ -253,6 +270,8 @@
     background: var(--paper-2);
     box-shadow: none;
   }
+  /* the drag handle is meaningless for an in-flow strip */
+  .mask-toolbar .mt-grip { display: none; }
   /* keep each control group whole while the strip scrolls */
   .mask-toolbar .mt-group,
   .mask-toolbar .mt-brush { flex: none; }

@@ -117,6 +117,7 @@ const STRINGS = {
   "mask.view.result": { en: "Result", zh: "结果" },
   "mask.view.mask": { en: "Mask", zh: "蒙版" },
   "mask.fit": { en: "Fit", zh: "适应" },
+  "mask.move": { en: "Drag to move panel", zh: "拖动移动面板" },
 
   "saved.title": { en: "My Templates", zh: "我的模板" },
   "saved.delete": { en: "Delete template", zh: "删除模板" },
