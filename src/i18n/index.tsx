@@ -24,15 +24,8 @@ const STRINGS = {
   "title.tail": { en: ".", zh: "。" },
 
   "lede.1": {
-    en: "Choose a scene, drop in an image, and watch it settle into the advertising surface — ",
-    zh: "选择一个场景，拖入一张图片，看它自然嵌入广告位——",
-  },
-  "lede.warp": { en: "perspective-warped", zh: "透视变形" },
-  "lede.2": { en: " to the geometry and ", zh: "贴合几何，" },
-  "lede.match": { en: "color-matched", zh: "色彩匹配" },
-  "lede.3": {
-    en: " to the light, so it reads as if it were always there.",
-    zh: "贴合光线，仿佛它本就在那里。",
+    en: "Choose a scene, drop in an image, and watch it settle into the advertising surface.",
+    zh: "选择一个场景，拖入一张图片，看它自然嵌入广告位。",
   },
 
   "collection.title": { en: "The Collection", zh: "场景库" },
@@ -137,6 +130,33 @@ const STRINGS = {
   "save.cancel": { en: "Cancel", zh: "取消" },
   "save.saving": { en: "Saving…", zh: "保存中…" },
   "toast.sceneSaved": { en: "Template saved", zh: "模板已保存" },
+
+  "publish.open": { en: "Publish as template", zh: "发布为官方模板" },
+  "publish.title": { en: "Publish official template", zh: "发布官方模板" },
+  "publish.nameEn": { en: "Name (EN)", zh: "名称（英文）" },
+  "publish.nameZh": { en: "Name (中文)", zh: "名称（中文）" },
+  "publish.captionEn": { en: "Caption (EN)", zh: "说明（英文）" },
+  "publish.captionZh": { en: "Caption (中文)", zh: "说明（中文）" },
+  "publish.id": { en: "ID (slug)", zh: "ID（标识）" },
+  "publish.idHint": { en: "Lowercase letters, numbers, hyphens.", zh: "仅限小写字母、数字、连字符。" },
+  "publish.idCollision": { en: "Updates the existing preset with this ID.", zh: "将覆盖同 ID 的现有模板。" },
+  "publish.mask": { en: "Occlusion mask", zh: "遮挡蒙版" },
+  "publish.maskImport": { en: "Import mask…", zh: "导入蒙版……" },
+  "publish.maskPainted": { en: "mask ready", zh: "蒙版已就绪" },
+  "publish.maskNone": { en: "no mask", zh: "无蒙版" },
+  "publish.maskHint": {
+    en: "White = foreground that stays in front of the ad.",
+    zh: "白色＝保留在广告前方的前景。",
+  },
+  "publish.submit": { en: "Publish", zh: "发布" },
+  "publish.publishing": { en: "Publishing…", zh: "发布中……" },
+  "publish.cancel": { en: "Cancel", zh: "取消" },
+  "publish.done": { en: "Published — commit to ship.", zh: "已发布——提交后即可上线。" },
+  "publish.fallback": {
+    en: "Endpoint unavailable — downloaded files + copied the entry.",
+    zh: "接口不可用——已下载文件并复制条目。",
+  },
+  "publish.error": { en: "Publish failed.", zh: "发布失败。" },
 
   "error.save": {
     en: "Couldn't save the template. Browser storage may be full or blocked.",
