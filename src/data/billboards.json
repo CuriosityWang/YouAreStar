@@ -1,37 +1,154 @@
 [
   {
     "id": "times-square-night",
-    "name": { "en": "Times Square — Night Marquee", "zh": "时代广场 · 夜色巨幕" },
-    "caption": { "en": "A rain-slick night; the big screen rides above the corner.", "zh": "雨夜街角——巨幕高悬于餐厅之上。" },
+    "name": {
+      "en": "Times Square — Night Marquee",
+      "zh": "时代广场 · 夜色巨幕"
+    },
+    "caption": {
+      "en": "A rain-slick night; the big screen rides above the corner.",
+      "zh": "雨夜街角——巨幕高悬于餐厅之上。"
+    },
     "src": "/billboards/times-square-night.jpg",
-    "corners": [[0.0737, 0.3427], [0.5857, 0.1391], [0.5865, 0.3853], [0.0691, 0.4618]]
+    "corners": [
+      [
+        0.0737,
+        0.3427
+      ],
+      [
+        0.5857,
+        0.1391
+      ],
+      [
+        0.5865,
+        0.3853
+      ],
+      [
+        0.0691,
+        0.4618
+      ]
+    ],
+    "mask": "/billboards/times-square-night-mask.png"
   },
   {
     "id": "times-square-corner",
-    "name": { "en": "Times Square — The Corner", "zh": "时代广场 · 转角斜切" },
-    "caption": { "en": "Neon crossing at night — a tall panel raking hard to the right.", "zh": "霓虹夜路口——高大灯箱强烈向右斜切。" },
+    "name": {
+      "en": "Times Square — The Corner",
+      "zh": "时代广场 · 转角斜切"
+    },
+    "caption": {
+      "en": "Neon crossing at night — a tall panel raking hard to the right.",
+      "zh": "霓虹夜路口——高大灯箱强烈向右斜切。"
+    },
     "src": "/billboards/times-square-corner.jpg",
-    "corners": [[0.076, 0.2097], [0.1669, 0.3498], [0.1615, 0.4881], [0.0638, 0.4089]]
+    "corners": [
+      [
+        0.076,
+        0.2097
+      ],
+      [
+        0.1669,
+        0.3498
+      ],
+      [
+        0.1615,
+        0.4881
+      ],
+      [
+        0.0638,
+        0.4089
+      ]
+    ],
+    "mask": "/billboards/times-square-corner-mask.png"
   },
   {
     "id": "gallery-wall",
-    "name": { "en": "The Gallery Wall", "zh": "画廊墙面" },
-    "caption": { "en": "Cool museum light — a large canvas at three-quarter view.", "zh": "冷调展厅光——三分之四视角的大幅画作。" },
+    "name": {
+      "en": "The Gallery Wall",
+      "zh": "画廊墙面"
+    },
+    "caption": {
+      "en": "Cool museum light — a large canvas at three-quarter view.",
+      "zh": "冷调展厅光——三分之四视角的大幅画作。"
+    },
     "src": "/billboards/gallery-wall.jpg",
-    "corners": [[0.2521, 0.2119], [0.5953, 0.2117], [0.596, 0.8718], [0.2549, 0.6936]]
+    "corners": [
+      [
+        0.2521,
+        0.2119
+      ],
+      [
+        0.5953,
+        0.2117
+      ],
+      [
+        0.596,
+        0.8718
+      ],
+      [
+        0.2549,
+        0.6936
+      ]
+    ]
   },
   {
     "id": "street-kiosk",
-    "name": { "en": "The Street Kiosk", "zh": "街头立柱" },
-    "caption": { "en": "Open air — a vertical poster panel at the bus stop.", "zh": "户外——公交站旁的竖式海报灯箱。" },
+    "name": {
+      "en": "The Street Kiosk",
+      "zh": "街头立柱"
+    },
+    "caption": {
+      "en": "Open air — a vertical poster panel at the bus stop.",
+      "zh": "户外——公交站旁的竖式海报灯箱。"
+    },
     "src": "/billboards/street-kiosk.jpg",
-    "corners": [[0.3001, 0.1962], [0.6085, 0.2129], [0.6119, 0.7318], [0.3003, 0.7448]]
+    "corners": [
+      [
+        0.3001,
+        0.1962
+      ],
+      [
+        0.6085,
+        0.2129
+      ],
+      [
+        0.6119,
+        0.7318
+      ],
+      [
+        0.3003,
+        0.7448
+      ]
+    ]
   },
   {
     "id": "subway-platform",
-    "name": { "en": "The Subway Platform", "zh": "地铁站台" },
-    "caption": { "en": "Underground — a long panel raking down the concourse.", "zh": "地下长廊——沿墙斜展的灯箱广告。" },
+    "name": {
+      "en": "The Subway Platform",
+      "zh": "地铁站台"
+    },
+    "caption": {
+      "en": "Underground — a long panel raking down the concourse.",
+      "zh": "地下长廊——沿墙斜展的灯箱广告。"
+    },
     "src": "/billboards/subway-platform.jpg",
-    "corners": [[0.0016, 0.3985], [0.4519, 0.5052], [0.4536, 0.5784], [0.0006, 0.721]]
+    "corners": [
+      [
+        0.0016,
+        0.3985
+      ],
+      [
+        0.4519,
+        0.5052
+      ],
+      [
+        0.4536,
+        0.5784
+      ],
+      [
+        0.0006,
+        0.721
+      ]
+    ]
   }
 ]
