@@ -499,8 +499,11 @@
   .sheet-grab:active { cursor: grabbing; }
   .sheet-grab:active::before { background: var(--muted); }
   .sheet-grab:focus-visible { outline: 2px solid var(--vermilion); outline-offset: -4px; border-radius: 8px; }
-  .sheet-header-row { display: flex; align-items: center; gap: 14px; }
-  .sheet-header-row .btn { flex: 1; justify-content: center; }
+  .sheet-header-row { display: flex; align-items: center; gap: 10px; }
+  .sheet-header-row .btn { flex: 1; justify-content: center; min-width: 0; }
+  /* Add image: a file input styled as a header button */
+  .sheet-add { position: relative; overflow: hidden; }
+  .sheet-add input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   .sheet-controls-label {
     font-family: var(--mono);
     font-size: 11px;

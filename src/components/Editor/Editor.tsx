@@ -232,6 +232,22 @@ export function Editor({ api }: { api: EditorApi }) {
     </Button>
   );
 
+  // Add / replace the source image — surfaced in the mobile peek header next to Export.
+  const addImageButton = (
+    <label className="btn btn-ghost sheet-add">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) setUserFile(f);
+          e.currentTarget.value = "";
+        }}
+      />
+      {state.userImage ? t("drop.replace") : t("drop.add")}
+    </label>
+  );
+
   // The peek header's primary button is context-aware: exit the active mode if
   // adjusting/masking (so the way out is always one tap away), else export.
   const primaryAction = state.maskMode ? (
@@ -348,6 +364,7 @@ export function Editor({ api }: { api: EditorApi }) {
                 onClick={onGrabClick}
               />
               <div className="sheet-header-row">
+                {!state.maskMode && !inAdjust && addImageButton}
                 {primaryAction}
                 <span className="sheet-controls-label">{t("sheet.controls")}</span>
               </div>
@@ -355,6 +372,9 @@ export function Editor({ api }: { api: EditorApi }) {
           )}
 
           <div className="sheet-body scroll-thin" ref={bodyRef}>
+            {/* On mobile the Add-image button lives in the peek header (addImageButton),
+                so this source panel is hidden there; it stays the upload point on desktop. */}
+            {!isMobile && (
             <div className="panel">
               <div className="panel-head">
                 <h3>{t("panel.image")}</h3>
@@ -390,6 +410,7 @@ export function Editor({ api }: { api: EditorApi }) {
               {state.editable && <p className="panel-note">{t("corner.note")}</p>}
               {state.maskMode && <p className="panel-note">{t("mask.hint")}</p>}
             </div>
+            )}
 
             <ColorMatchPanel grade={state.grade} onChange={setGrade} />
             <BlendPanel blend={state.blend} onChange={setBlend} />
