@@ -19,7 +19,7 @@ import {
 } from "../lib/loadImage";
 import { putScene, type SavedScene } from "../lib/savedScenes";
 import { imageStats, sampleRegionStats } from "../lib/imageStats";
-import { createMaskCanvas, drawBaseImage, type MaskCanvas } from "../lib/maskCanvas";
+import { createMaskCanvas, drawBaseImage, drawImportedMask, type MaskCanvas } from "../lib/maskCanvas";
 
 export interface EditorSource {
   kind: "preset" | "custom";
@@ -338,6 +338,7 @@ export function useEditor() {
 
   const clearUser = useCallback(() => dispatch({ type: "CLEAR_USER" }), []);
   const clearError = useCallback(() => dispatch({ type: "ERROR", message: null }), []);
+  const reportError = useCallback((message: TKey) => dispatch({ type: "ERROR", message }), []);
   const setCorners = useCallback(
     (corners: Corners) => dispatch({ type: "SET_CORNERS", corners }),
     [],
@@ -375,7 +376,7 @@ export function useEditor() {
       // Fresh canvas → new reference so EditorStage re-uploads the texture.
       // Import replaces any current paint (load-a-mask-file = replace).
       const mask = createMaskCanvas(src.bgWidth, src.bgHeight);
-      drawBaseImage(mask, img);
+      drawImportedMask(mask, img);
       dispatch({ type: "SET_MASK_CANVAS", mask });
     } catch (e) {
       console.error(e);
@@ -417,6 +418,7 @@ export function useEditor() {
     setMaskMode,
     ensureMask,
     importMask,
+    reportError,
     backToGallery,
   };
 }

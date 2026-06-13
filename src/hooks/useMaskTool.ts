@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RenderState, Renderer } from "../lib/webgl/renderer";
 import type { EditorApi } from "./useEditor";
-import { cropImageData, strokeSegment, stampBrush, clearMask, invertMask, type MaskCanvas } from "../lib/maskCanvas";
+import { cropImageData, strokeSegment, stampBrush, clearMask, invertMask, drawImportedMask, type MaskCanvas } from "../lib/maskCanvas";
+import { fileToImage } from "../lib/loadImage";
 import {
   clampPan,
   clampRectToCanvas,
@@ -56,6 +57,9 @@ export interface MaskTool {
   redo: () => void;
   clear: () => void;
   invert: () => void;
+  /** Replace the mask with an imported image (white = occluding foreground),
+   *  scaled to fill. Undoable like clear/invert. */
+  importMask: (file: File) => Promise<void>;
   cursor: { x: number; y: number; visible: boolean };
   displayRadius: number;
   spaceHeld: boolean;
@@ -86,6 +90,8 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
   const [canRedo, setCanRedo] = useState(false);
 
   // refs that the imperative paint loop reads without re-rendering
+  const activeRef = useRef(active);
+  activeRef.current = active;
   const viewRef = useRef(view);
   viewRef.current = view;
   const radiusRef = useRef(radius);
@@ -493,6 +499,27 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     pushWholeCanvasUndo((m) => invertMask(m));
   }, [pushWholeCanvasUndo]);
 
+  // Load a mask image and paint it onto the canvas in place (a full-canvas
+  // replace). Drawn through the same whole-canvas undo path as clear/invert, so
+  // it re-uploads the texture, repaints the overlay, and is undoable.
+  const importMask = useCallback(
+    async (file: File) => {
+      let img: HTMLImageElement;
+      try {
+        img = await fileToImage(file);
+      } catch (e) {
+        console.error(e);
+        api.reportError("error.load");
+        return;
+      }
+      // The decode is async; if the user left mask mode meanwhile, don't apply
+      // an edit whose toolbar is gone (it would also strand an undo entry).
+      if (!activeRef.current) return;
+      pushWholeCanvasUndo((m) => drawImportedMask(m, img));
+    },
+    [api, pushWholeCanvasUndo],
+  );
+
   const setViewMode = useCallback(
     (m: MaskViewMode) => {
       setViewModeState(m);
@@ -577,6 +604,7 @@ export function useMaskTool(args: UseMaskToolArgs): MaskTool {
     redo,
     clear,
     invert,
+    importMask,
     cursor,
     displayRadius,
     spaceHeld,

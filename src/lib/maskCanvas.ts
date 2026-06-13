@@ -46,12 +46,56 @@ export function invertMask(mask: MaskCanvas): void {
   ctx.restore();
 }
 
-/** Draw a preset's mask PNG as the starting layer, scaled to fill. */
+/** Draw a preset's mask PNG as the starting layer, scaled to fill. Used for
+ *  masks this tool produced (opaque grayscale), so the raw bytes go straight in. */
 export function drawBaseImage(mask: MaskCanvas, img: CanvasImageSource): void {
   const { ctx, canvas } = mask;
   ctx.save();
   ctx.globalCompositeOperation = "source-over";
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+/**
+ * Import an arbitrary user image as the mask (scaled to fill, replaces all).
+ * A "custom mask" can encode the foreground two ways, so we normalise both into
+ * the red channel the shader reads (`alpha *= 1 - mask.r`):
+ *  - a **transparency cutout / alpha matte** (the common output of background
+ *    removal): foreground is the OPAQUE region → use the alpha channel. Drawing
+ *    such a PNG straight onto black would discard alpha and occlude nothing.
+ *  - an **opaque grayscale/white-on-black mask**: foreground is bright → use
+ *    luminance. (For masks this tool exported, r==g==b, so luminance == r.)
+ * Anti-aliased edges (fractional alpha or gray) carry through as feathering.
+ */
+export function drawImportedMask(mask: MaskCanvas, img: CanvasImageSource): void {
+  const { ctx, canvas } = mask;
+  const w = canvas.width;
+  const h = canvas.height;
+  // Render onto a transparent scratch canvas so the source's own alpha survives.
+  const tmp = document.createElement("canvas");
+  tmp.width = w;
+  tmp.height = h;
+  const tctx = tmp.getContext("2d", { willReadFrequently: true })!;
+  tctx.drawImage(img, 0, 0, w, h);
+  const data = tctx.getImageData(0, 0, w, h);
+  const px = data.data;
+  let hasAlpha = false;
+  for (let i = 3; i < px.length; i += 4) {
+    if (px[i] < 255) {
+      hasAlpha = true;
+      break;
+    }
+  }
+  for (let i = 0; i < px.length; i += 4) {
+    const occ = hasAlpha
+      ? px[i + 3]
+      : 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+    px[i] = px[i + 1] = px[i + 2] = occ;
+    px[i + 3] = 255;
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.putImageData(data, 0, 0); // full-canvas write — fully replaces prior content
   ctx.restore();
 }
 

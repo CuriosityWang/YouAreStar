@@ -36,7 +36,7 @@ export const DEFAULT_GRADE: GradeParams = {
 export const DEFAULT_BLEND: BlendParams = {
   mode: "normal",
   opacity: 1,
-  feather: 0.12,
+  feather: 0.04,
   grain: 0.2,
 };
 

@@ -118,6 +118,11 @@ const STRINGS = {
   "mask.view.mask": { en: "Mask", zh: "蒙版" },
   "mask.fit": { en: "Fit", zh: "适应" },
   "mask.move": { en: "Drag to move panel", zh: "拖动移动面板" },
+  "mask.import": { en: "Import", zh: "导入" },
+  "mask.importHint": {
+    en: "Load a mask image (white = foreground that stays in front of the ad).",
+    zh: "导入蒙版图片（白色＝保留在广告前方的前景）。",
+  },
 
   "saved.title": { en: "My Templates", zh: "我的模板" },
   "saved.delete": { en: "Delete template", zh: "删除模板" },

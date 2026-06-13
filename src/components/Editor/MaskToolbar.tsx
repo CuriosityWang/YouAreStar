@@ -165,6 +165,19 @@ export function MaskToolbar({ tool }: { tool: MaskTool }) {
         <button type="button" className="mt-btn" onClick={tool.invert}>
           {t("mask.invert")}
         </button>
+        <label className="mt-btn mt-import" title={t("mask.importHint")}>
+          <input
+            type="file"
+            accept="image/*"
+            aria-label={`${t("mask.import")} — ${t("mask.importHint")}`}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void tool.importMask(f);
+              e.currentTarget.value = "";
+            }}
+          />
+          {t("mask.import")}
+        </label>
       </div>
 
       <div className="mt-group">

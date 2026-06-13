@@ -186,6 +186,30 @@
   opacity: 0.4;
   cursor: default;
 }
+.mask-toolbar .mt-btn:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
+}
+/* file-input button (Import mask): the <label> carries the .mt-btn look; its
+   native <input type=file> is visually hidden but still clickable via the label. */
+.mask-toolbar .mt-import {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.mask-toolbar .mt-import input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+/* the focusable input is invisible, so cue focus on the label instead */
+.mask-toolbar .mt-import:focus-within {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 2px;
+}
 .mask-toolbar .mt-brush {
   display: inline-flex;
   align-items: center;
