@@ -176,6 +176,11 @@
 
 /* ---------- editor ---------- */
 .editor { display: flex; flex-direction: column; min-height: 100vh; }
+@media (max-width: 900px) {
+  /* mobile = a fixed one-screen app: the stage fills the viewport and the controls
+     live in a bottom-sheet overlay, so the page itself never scrolls. */
+  .editor { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+}
 /* sticky region holding the nav row + (when present) the error banner, so the
    banner is always pinned right below the nav instead of scrolling behind it */
 .editor-top {
@@ -263,12 +268,9 @@
   min-height: 0;
 }
 @media (max-width: 900px) {
-  /* minmax(0, 1fr), not 1fr: a bare `1fr` track is minmax(auto, 1fr), whose `auto`
-     minimum is the cell's max-content. In mask mode the in-flow toolbar's wide
-     (flex-wrap:nowrap) max-content would blow the track out past the screen,
-     expanding the mobile layout viewport and re-inflating the canvas. minmax(0,…)
-     lets the track shrink to the column so the toolbar scrolls internally. */
-  .editor-main { grid-template-columns: minmax(0, 1fr); }
+  /* the sidebar becomes a fixed bottom sheet (out of flow), so the stage is the only
+     in-flow child — drop the two-column grid and let it fill the screen. */
+  .editor-main { display: flex; flex-direction: column; }
 }
 
 /* stage */
@@ -284,24 +286,20 @@
     var(--paper-sunk);
   min-height: 0;
 }
-/* Mobile (single-column) drops the stage's height anchor. On desktop the sidebar's
-   max-height stretches the shared grid row and the stage fills it; stacked, the stage
-   row is `auto` and its height feeds back from the canvas that EditorStage's fit()
-   sizes from this very element — a circular dependency that collapses the canvas to
-   ~30px (measured). A definite lower bound breaks the loop. min-height (not height)
-   lets the stage grow for the in-flow mask toolbar that sits below the frame on
-   phones; dvh tracks the URL bar. Placed AFTER the base rule so it wins the cascade. */
 @media (max-width: 900px) {
-  /* align-items:stretch (vs the base center) makes the stage's children take the
-     column's definite width instead of shrink-wrapping to content. Without it the
-     in-flow mask toolbar (a sibling of the frame on phones) would shrink-wrap to its
-     wide flex-wrap:nowrap min-content, overflow the column, and balloon the mobile
-     layout viewport — which fed back into fit() and re-inflated the canvas. Bounded
-     to the column it scrolls internally. justify-content:center still centers
-     vertically. overflow-x:clip is belt-and-suspenders against horizontal page scroll. */
-  .stage-wrap { min-height: 70vh; min-height: 70dvh; align-items: stretch; overflow-x: clip; }
-  /* the wrap now also holds the in-flow toolbar below it, so let the frame size to
-     its own content (canvas + placard) rather than cap to the (taller) wrap. */
+  /* The stage fills the fixed-height app screen, so fit() gets a real height from the
+     flex layout (no min-height hack, no circular dependency). padding-bottom reserves
+     the peeked sheet's header height (--peek-h, set from JS) so the framed image —
+     and, in mask mode, the in-flow toolbar below it — clears the sheet. align-items:
+     stretch + overflow-x:clip keep a wide mask toolbar from widening/overflowing the
+     column. */
+  .stage-wrap {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 14px calc(var(--peek-h, 92px) + 12px);
+    align-items: stretch;
+    overflow-x: clip;
+  }
   .stage-frame { max-height: none; }
 }
 .stage-frame {
@@ -440,7 +438,82 @@
   overflow-y: auto;
   max-height: calc(100vh - 65px);
 }
-@media (max-width: 900px) { .sidebar { max-height: none; border-left: none; border-top: var(--rule) solid var(--ink); } }
+/* The sheet body wraps the panels so the mobile sheet can scroll them under a fixed
+   header. On desktop it's layout-transparent — the panels sit directly in the sidebar
+   exactly as before. */
+.sheet-body { display: contents; }
+
+@media (max-width: 900px) {
+  /* sidebar -> draggable bottom sheet. `height` is the expanded size; the component
+     translates it down (framer-motion) so only the header peeks. */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* expanded height leaves a strip of the preview visible above the sheet so the
+       color-match sliders can be judged against the image while dragging; the body
+       scrolls to reach the rest of the controls. */
+    height: 64vh;
+    height: 64dvh;
+    max-height: none;
+    border-left: none;
+    border-top: var(--rule) solid var(--hairline-2);
+    border-radius: 18px 18px 0 0;
+    background: var(--paper-2);
+    box-shadow: 0 -16px 44px -22px rgba(27, 23, 20, 0.55);
+    overflow: visible;
+    z-index: 30;
+    will-change: transform;
+  }
+  /* fixed header: the drag/tap handle + the context-aware primary action */
+  .sheet-header { flex: none; padding: 0 20px 12px; border-bottom: var(--rule) solid var(--hairline); }
+  .sheet-grab {
+    display: block;
+    width: 100%;
+    height: 26px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: grab;
+    touch-action: none; /* the handle drives the sheet drag, not page scroll */
+  }
+  .sheet-grab::before {
+    content: "";
+    display: block;
+    width: 42px;
+    height: 4px;
+    margin: 11px auto 0;
+    border-radius: 999px;
+    background: var(--hairline-2);
+    transition: background 0.15s;
+  }
+  .sheet-grab:active { cursor: grabbing; }
+  .sheet-grab:active::before { background: var(--muted); }
+  .sheet-grab:focus-visible { outline: 2px solid var(--vermilion); outline-offset: -4px; border-radius: 8px; }
+  .sheet-header-row { display: flex; align-items: center; gap: 14px; }
+  .sheet-header-row .btn { flex: 1; justify-content: center; }
+  .sheet-controls-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  /* the panels scroll under the fixed header */
+  .sheet-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  /* advanced section: corner/mask entry, flagged as desktop-friendlier */
+  .adv-panel .panel-num { max-width: 55%; text-align: right; line-height: 1.35; }
+  .adv-panel .row > * { flex: 1; }
+}
 
 .panel { padding: 22px 24px; border-bottom: var(--rule) solid var(--hairline); }
 .panel-head {

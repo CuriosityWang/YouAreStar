@@ -124,6 +124,11 @@ const STRINGS = {
     zh: "导入蒙版图片（白色＝保留在广告前方的前景）。",
   },
 
+  "sheet.controls": { en: "Adjustments", zh: "调整参数" },
+  "sheet.toggle": { en: "Expand or collapse controls", zh: "展开 / 收起参数" },
+  "adv.title": { en: "Advanced", zh: "高级" },
+  "adv.hint": { en: "Precise work — easier on a computer", zh: "精确操作在电脑上更顺手" },
+
   "saved.title": { en: "My Templates", zh: "我的模板" },
   "saved.delete": { en: "Delete template", zh: "删除模板" },
   "saved.confirmDelete": { en: "Delete?", zh: "确认删除?" },
