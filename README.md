@@ -1,121 +1,53 @@
-# Billboard Replacer · 广告牌置换
+<p align="center">
+  <b>简体中文</b> · <a href="./README.en.md">English</a>
+</p>
 
-> Drop your artwork onto a billboard's ad surface so it looks **integrated, not pasted** —
-> perspective-warped to the surface geometry and color-matched to the scene's light.
+<h1 align="center">YouAreStar · 广告牌替换器</h1>
 
-A browser tool that composites any image into a billboard's ad surface using a
-**homography (perspective) warp** plus **Reinhard color transfer**, all in a single
-real-time WebGL pass. The preview you see is exactly what you download — the export
-re-runs the *same* shader at full resolution.
+<p align="center">把你的作品，放上时代广场的广告牌。</p>
 
-The look is "Editorial Gallery": warm paper, Fraunces display type, a vermilion accent.
-The UI is fully bilingual — **English / 中文**.
+浏览器里的合成工具：通过**透视变形（单应性 / homography）**加 **Reinhard 配色匹配**，把你的图片自然嵌进广告牌的广告位——看起来像它本就在那，而不是硬贴上去的。
 
----
+<p align="center"><img src="./docs/hero.png" width="760" alt="YouAreStar 预览"></p>
 
-## Features
+## ✨ 特性
 
-- **Two ways in**
-  - **Preset scenes** — pick a photo whose ad surface is already annotated and drop your image in.
-  - **Use your own billboard** — upload any photo and drag four handles to mark the surface.
-- **Perspective warp** — a 4-point homography maps your image onto the marked quad, so it
-  follows the surface in 3D space.
-- **Auto color match** — Reinhard color transfer (computed in the decorrelated *lαβ* space)
-  samples the lighting *inside* the billboard region and remaps your image's statistics onto
-  it, so the insert sits in the same light as the scene.
-- **Manual grade & blend** — fine-tune exposure/tint, edge feather, blend mode, and grain.
-- **Occlusion masks** — a white mask keeps foreground objects in front of the inserted image.
-- **WYSIWYG export** — one WebGL shader drives both the live preview and the PNG export.
+- **透视贴合** — 四点单应性，把图片变形对齐广告位的几何
+- **配色匹配** — Reinhard lαβ 色彩迁移，让图片贴合场景光线，强度可调
+- **两种模式** — 预制场景（角点已标好）/ 自定义上传（拖四个角标定广告面）
+- **遮挡蒙版** — 让灯杆、行人等前景留在广告前方；手绘画笔或导入 PNG / 抠图（自动识别 alpha）
+- **手动微调** — 亮度 / 对比 / 饱和 / 色温 / 混合模式 / 边缘羽化 / 噪点
+- **所见即所得导出** — 同一套 WebGL 着色器驱动预览与导出，输出全分辨率 PNG
+- **双语界面** — 中文 / English，自动记忆
+- **纯前端** — 无后端，静态托管即可
 
-## How it works
-
-A single full-screen WebGL pass does everything per fragment:
-
-1. **Perspective warp** — sample the user image through the *inverse* homography.
-2. **Reinhard transfer** — match the image's color statistics to the billboard region's.
-3. **Manual grade** — exposure / tint adjustments.
-4. **Edge feather → blend mode → occlusion mask → grain.**
-
-The CPU side (`src/lib/color.ts`, `src/lib/imageStats.ts`) computes the per-channel
-*lαβ* mean/std for both the source image and the sampled target region; the shader
-re-implements the color math so the two stay in sync. Geometry lives in
-`src/lib/homography.ts` (4-point DLT), the GLSL in `src/lib/webgl/shaders.ts`, and the
-renderer in `src/lib/webgl/renderer.ts`.
-
-## Tech stack
-
-React + Vite + TypeScript · raw WebGL (no Three.js) · framer-motion · plain CSS.
-No backend — everything runs in the browser.
-
-## Getting started
+## 🚀 快速开始
 
 ```bash
 npm install
-npm run dev        # Vite dev server on http://localhost:5173
-npm run build      # type-check + production build → dist/
-npm run preview    # serve the production build locally
+npm run dev        # 开发服务器 http://localhost:5173
+npm run build      # 构建产物 → dist/
+npm run preview    # 本地预览生产构建
 ```
 
-> Requires Node 18+ (Node 20 LTS recommended).
+## 🧱 技术栈
 
-## Preset scenes
+React 18 · Vite 5 · TypeScript · 原生 WebGL（单 full-screen pass 着色器：透视 + 配色 + 蒙版 + 颗粒一次绘制）· framer-motion。无 CSS 框架，无后端。
 
-| Scene | File |
-|---|---|
-| Times Square — Night Marquee | `times-square-night.jpg` |
-| Times Square — The Corner | `times-square-corner.jpg` |
-| The Gallery Wall | `gallery-wall.jpg` |
-| The Street Kiosk | `street-kiosk.jpg` |
-| The Subway Platform | `subway-platform.jpg` |
+## 📦 部署
 
-**Adding your own:** drop an image in `public/billboards/`, then add an entry to `PRESETS`
-in `src/data/presets.ts` with normalized corners in `[TL, TR, BR, BL]` order. The fastest
-way to get correct corners is to load the image in the app's **custom mode**, drag the four
-handles, and click **Copy corners**.
+纯静态站：`npm run build` 产出 `dist/`，把 `dist/` 里的内容托管到任意静态服务器（nginx / 对象存储 / CDN）即可。仓库附带 `deploy.sh`（本地构建 + `rsync` 增量上传到服务器），服务器地址写在被 git 忽略的 `deploy.env`（见 `deploy.env.example`），不会泄露。
 
-## Deployment
+## 📂 项目结构（关键）
 
-It's a static single-page app, so any static host works (Nginx, Caddy, Netlify, Vercel,
-GitHub Pages, …). Build, then serve the `dist/` folder:
+| 路径 | 作用 |
+| --- | --- |
+| `src/lib/webgl/` | 着色器与渲染器（一次绘制完成所有效果） |
+| `src/lib/homography.ts` | 四点 DLT 求单应矩阵 |
+| `src/lib/color.ts` | lαβ 配色统计（CPU 侧，与着色器保持一致） |
+| `src/hooks/useEditor.ts` | 编辑器状态，单一数据源 |
+| `src/data/billboards.json` | 预制场景数据 |
 
-```bash
-npm run build
-# point your web server's document root at ./dist
-```
+## 📄 许可
 
-Minimal Nginx example:
-
-```nginx
-server {
-    listen 80;
-    server_name _;
-    root /var/www/youarestar/dist;
-    index index.html;
-    location / { try_files $uri $uri/ /index.html; }
-}
-```
-
-## Project layout
-
-```
-src/
-  lib/
-    homography.ts        4-point DLT, matrix helpers
-    color.ts             Reinhard lαβ statistics (CPU)
-    imageStats.ts        target-region stats sampling
-    webgl/
-      shaders.ts         GLSL ES 1.00 (vertex + fragment)
-      renderer.ts        Renderer class, renderToBlob()
-  hooks/useEditor.ts     useReducer — single source of truth
-  components/            Gallery, Editor, control panels
-  i18n/                  EN / 中文 dictionary
-  data/presets.ts        preset scenes + corner annotations
-public/billboards/       preset photos (+ CREDITS.md)
-```
-
-## Credits & license
-
-Preset background photos are from [Unsplash](https://unsplash.com) (Unsplash License) —
-see [`public/billboards/CREDITS.md`](public/billboards/CREDITS.md) for per-photo sources.
-
-Licensed under the [MIT License](LICENSE).
+未声明（private）。如需开源，建议补充 `LICENSE`（例如 MIT）。
