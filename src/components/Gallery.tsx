@@ -37,13 +37,7 @@ export function Gallery({
             {t("title.lead")} <em>{t("title.accent")}</em>
             {t("title.tail")}
           </h1>
-          <p className="masthead-lede">
-            {t("lede.1")}
-            <b>{t("lede.warp")}</b>
-            {t("lede.2")}
-            <b>{t("lede.match")}</b>
-            {t("lede.3")}
-          </p>
+          <p className="masthead-lede">{t("lede.1")}</p>
         </motion.header>
 
         <section className="collection">
