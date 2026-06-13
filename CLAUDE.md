@@ -44,11 +44,18 @@ Reinhard color transfer runs in the decorrelated **lαβ** space. The CPU side (
 `src/i18n/index.tsx` holds `STRINGS` (the EN/ZH dictionary, typed — `TKey`), `I18nProvider`, and `useI18n()` (`{ lang, setLang, t }`). All UI text goes through `t(key)`. Preset names/captions are `LocalizedString` ({en, zh}) resolved with `loc(value, lang)`; `EditorSource.name` may be a plain string (custom uploads) or `LocalizedString` (presets), so always resolve it through `loc()`. Language is persisted to `localStorage` and defaults from `navigator.language`. Adding a string = add one typed entry to `STRINGS`.
 
 ## Adding a preset scene
-1. Put the image (SVG or photo) in `public/billboards/`.
-2. Add an entry to `PRESETS` in `src/data/presets.ts` with normalized `corners` in `[TL, TR, BR, BL]` order. The fastest way to get correct corners is to load the image via the app's **custom mode**, drag the four handles, and click **Copy corners** — it copies a ready-to-paste snippet.
-3. Optional occlusion: supply a `mask` PNG (white = foreground that must stay in front of the inserted image). The shader already honors it (`alpha *= 1 - mask`); only the mask asset is missing for existing scenes.
 
-The bundled `public/billboards/*.svg` are dependency-free placeholder scenes; the panel polygon coordinates in each SVG are kept identical to the normalized `corners` in `presets.ts`.
+Preset data lives in **`src/data/billboards.json`** (machine-owned); `src/data/presets.ts` imports it and keeps only the `Preset` type + the corner-ordering doc comment.
+
+**Admin publish flow (dev-only, recommended).** Run `npm run dev` and open the editor — upload a photo (**custom mode**) or open an existing preset. Set the corners with **Adjust**, then process the foreground: toggle **Mask** to paint the occlusion mask by hand, or use **Import mask…** in the publish dialog to load a PNG / alpha matte (white = foreground that stays in front of the ad). Click **Publish as template** (only rendered when `import.meta.env.DEV`), fill in EN/ZH name + caption, confirm the `id`, then **Publish**. A Vite dev middleware (`vite-plugin-publish-template.ts`, `POST /__publish-template`) writes `public/billboards/<id>.<ext>` and `public/billboards/<id>-mask.png` and upserts the entry into `billboards.json`; HMR shows the card. Then ship it:
+
+```bash
+git add public/billboards src/data/billboards.json && git commit
+```
+
+Editing an existing preset's mask is the same flow — open it, paint/import, **Publish** (the dialog is prefilled and the background is left untouched). This is how the `Preset.mask` field gets populated (`alpha *= 1 - mask.r` in the shader; white = occluding foreground). The pure manifest logic lives in `src/lib/presetManifest.ts` (shared by the plugin and the browser client `src/lib/publishTemplate.ts`); verify the endpoint with `node .claude/skills/run-billboard-replacer/publish-driver.mjs` (dev server up).
+
+**By hand.** Drop the image in `public/billboards/` and add an object to `billboards.json` with normalized `corners` in `[TL, TR, BR, BL]` order (the editor's **Copy corners** still emits them), plus an optional `"mask": "/billboards/<id>-mask.png"`.
 
 ## Styling
 Three plain CSS files (no CSS framework), loaded in order: `src/styles/global.css` (design tokens / type / paper grain), `src/styles/ui.css` (control primitives, language toggle, buttons), `src/styles/app.css` (gallery + editor layout). All colors and metrics are CSS custom properties defined in `global.css`.

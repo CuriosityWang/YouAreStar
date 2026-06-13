@@ -15,10 +15,15 @@ It walks the core flow (gallery → open preset → confirm the WebGL canvas dre
 upload an image → confirm the composite → export a PNG), prints PASS/FAIL, and
 drops screenshots in `screenshots/`.
 
-Two feature drivers extend it: [`mask-driver.mjs`](mask-driver.mjs) (brush
-occlusion mask) and [`saved-driver.mjs`](saved-driver.mjs) (saved templates:
+Three feature drivers extend it: [`mask-driver.mjs`](mask-driver.mjs) (brush
+occlusion mask), [`saved-driver.mjs`](saved-driver.mjs) (saved templates:
 save → IndexedDB record + mask round-trip → reload → reopen → update-in-place
-→ delete). Run them the same way; both expect the dev server to be up.
+→ delete), and [`publish-driver.mjs`](publish-driver.mjs) (admin publish flow:
+POSTs a synthetic official template to `/__publish-template`, asserts the bg +
+mask PNG were written and `src/data/billboards.json` upserted, rejects an unsafe
+id, then restores the manifest and deletes the test assets so the repo stays
+clean). `publish-driver.mjs` is a plain-Node `fetch` test — no puppeteer. Run
+them the same way; all expect the dev server to be up.
 
 All paths below are relative to the repo root.
 
