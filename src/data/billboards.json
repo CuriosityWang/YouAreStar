@@ -181,5 +181,95 @@
       ]
     ],
     "mask": "/billboards/snipaste-2026-06-13-21-26-13-mask.png"
+  },
+  {
+    "id": "night-facade-marquee",
+    "name": {
+      "en": "Night Facade Marquee",
+      "zh": "夜幕楼体巨幅"
+    },
+    "caption": {
+      "en": "A towering portrait display glowing above a midnight boulevard.",
+      "zh": "午夜街道之上，竖向巨幅灯幕照亮楼体。"
+    },
+    "src": "/billboards/night-facade-marquee.jpg",
+    "corners": [
+      [
+        0.14661335429084674,
+        0.1320837461350869
+      ],
+      [
+        0.5183083559389869,
+        0.11602886417000688
+      ],
+      [
+        0.5321629786886585,
+        0.6324957540391064
+      ],
+      [
+        0.10743855638115457,
+        0.6355604668379568
+      ]
+    ]
+  },
+  {
+    "id": "rainy-bus-shelter",
+    "name": {
+      "en": "Rainy Bus Shelter",
+      "zh": "雨夜公交灯箱"
+    },
+    "caption": {
+      "en": "A clean portrait lightbox beside wet rails and an empty bench.",
+      "zh": "湿润轨道与空长椅旁，一块明亮的竖式灯箱。"
+    },
+    "src": "/billboards/rainy-bus-shelter.jpg",
+    "corners": [
+      [
+        0.37305554320273937,
+        0.365815506327003
+      ],
+      [
+        0.6240538978076222,
+        0.3648782960783921
+      ],
+      [
+        0.6260772891003691,
+        0.6330705142315877
+      ],
+      [
+        0.37179259127495884,
+        0.6346214137533103
+      ]
+    ]
+  },
+  {
+    "id": "red-frame-city-board",
+    "name": {
+      "en": "Red Frame City Board",
+      "zh": "红框城市竖牌"
+    },
+    "caption": {
+      "en": "A tall blank panel framed in red above a busy city intersection.",
+      "zh": "城市路口上方，红色边框围合出醒目的竖向画面。"
+    },
+    "src": "/billboards/red-frame-city-board.jpg",
+    "corners": [
+      [
+        0.335198114466136,
+        0.21226661544371878
+      ],
+      [
+        0.7845999911059723,
+        0.22350749135612755
+      ],
+      [
+        0.7987281540445591,
+        0.8156165962351133
+      ],
+      [
+        0.3355627696002135,
+        0.8148290434114484
+      ]
+    ]
   }
 ]
