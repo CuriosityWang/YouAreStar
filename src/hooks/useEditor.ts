@@ -18,8 +18,9 @@ import {
   makeThumbDataURL,
 } from "../lib/loadImage";
 import { putScene, type SavedScene } from "../lib/savedScenes";
-import { imageStats, sampleRegionStats } from "../lib/imageStats";
+import { imageStats, imageStatsRegion, sampleRegionStats } from "../lib/imageStats";
 import { createMaskCanvas, drawBaseImage, drawImportedMask, type MaskCanvas } from "../lib/maskCanvas";
+import { DEFAULT_CROP, cropWindow, type CropParams } from "../lib/crop";
 
 export interface EditorSource {
   kind: "preset" | "custom";
@@ -51,7 +52,9 @@ export interface EditorState {
   tgtStats: Stats;
   grade: GradeParams;
   blend: BlendParams;
+  crop: CropParams;
   editable: boolean; // corner handles draggable
+  cropMode: boolean; // user-image position/zoom tool active
   maskMode: boolean; // brush mask tool active
   maskTouched: boolean; // mask has content worth feeding to the GPU
   seed: number;
@@ -76,7 +79,9 @@ const initialState: EditorState = {
   tgtStats: NEUTRAL_STATS,
   grade: DEFAULT_GRADE,
   blend: DEFAULT_BLEND,
+  crop: DEFAULT_CROP,
   editable: false,
+  cropMode: false,
   maskMode: false,
   maskTouched: false,
   seed: Math.random() * 100,
@@ -91,11 +96,15 @@ type Action =
   | { type: "SET_USER"; image: HTMLImageElement; thumb: string; name: string; stats: Stats }
   | { type: "CLEAR_USER" }
   | { type: "SET_CORNERS"; corners: Corners }
+  | { type: "SET_SRC_STATS"; stats: Stats }
   | { type: "SET_TGT_STATS"; stats: Stats }
   | { type: "SET_GRADE"; patch: Partial<GradeParams> }
   | { type: "SET_BLEND"; patch: Partial<BlendParams> }
+  | { type: "SET_CROP"; patch: Partial<CropParams> }
+  | { type: "RESET_CROP" }
   | { type: "RESET_ADJUST" }
   | { type: "SET_EDITABLE"; value: boolean }
+  | { type: "SET_CROP_MODE"; value: boolean }
   | { type: "SET_MASK_MODE"; value: boolean }
   | { type: "SET_MASK_CANVAS"; mask: MaskCanvas }
   | { type: "MARK_SAVED"; id: string; name: string; bgBlob: Blob; createdAt: number }
@@ -114,6 +123,7 @@ function reducer(state: EditorState, action: Action): EditorState {
         view: "editor",
         source: action.source,
         editable: action.editable,
+        cropMode: false,
         maskMode: false,
         maskTouched: false,
         userImage: null,
@@ -123,6 +133,7 @@ function reducer(state: EditorState, action: Action): EditorState {
         tgtStats: NEUTRAL_STATS,
         grade: DEFAULT_GRADE,
         blend: DEFAULT_BLEND,
+        crop: DEFAULT_CROP,
         loading: false,
         error: null,
       };
@@ -133,27 +144,60 @@ function reducer(state: EditorState, action: Action): EditorState {
         userThumb: action.thumb,
         userName: action.name,
         srcStats: action.stats,
+        crop: DEFAULT_CROP,
+        cropMode: false,
         loading: false,
         error: null,
       };
     case "CLEAR_USER":
-      return { ...state, userImage: null, userThumb: null, userName: null, srcStats: NEUTRAL_STATS };
+      return {
+        ...state,
+        userImage: null,
+        userThumb: null,
+        userName: null,
+        srcStats: NEUTRAL_STATS,
+        crop: DEFAULT_CROP,
+        cropMode: false,
+      };
     case "SET_CORNERS":
       return state.source
         ? { ...state, source: { ...state.source, corners: action.corners } }
         : state;
+    case "SET_SRC_STATS":
+      return { ...state, srcStats: action.stats };
     case "SET_TGT_STATS":
       return { ...state, tgtStats: action.stats };
     case "SET_GRADE":
       return { ...state, grade: { ...state.grade, ...action.patch } };
     case "SET_BLEND":
       return { ...state, blend: { ...state.blend, ...action.patch } };
+    case "SET_CROP":
+      return { ...state, crop: { ...state.crop, ...action.patch } };
+    case "RESET_CROP":
+      return { ...state, crop: DEFAULT_CROP };
     case "RESET_ADJUST":
       return { ...state, grade: DEFAULT_GRADE, blend: DEFAULT_BLEND };
     case "SET_EDITABLE":
-      return { ...state, editable: action.value, maskMode: action.value ? false : state.maskMode };
+      return {
+        ...state,
+        editable: action.value,
+        cropMode: action.value ? false : state.cropMode,
+        maskMode: action.value ? false : state.maskMode,
+      };
+    case "SET_CROP_MODE":
+      return {
+        ...state,
+        cropMode: action.value,
+        editable: action.value ? false : state.editable,
+        maskMode: action.value ? false : state.maskMode,
+      };
     case "SET_MASK_MODE":
-      return { ...state, maskMode: action.value, editable: action.value ? false : state.editable };
+      return {
+        ...state,
+        maskMode: action.value,
+        editable: action.value ? false : state.editable,
+        cropMode: action.value ? false : state.cropMode,
+      };
     case "SET_MASK_CANVAS":
       return state.source
         ? { ...state, source: { ...state.source, maskCanvas: action.mask }, maskTouched: true }
@@ -181,6 +225,7 @@ function reducer(state: EditorState, action: Action): EditorState {
 export function useEditor() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const statsTimer = useRef<number | null>(null);
+  const srcStatsTimer = useRef<number | null>(null);
   const sourceRef = useRef(state.source);
   sourceRef.current = state.source;
   const maskTouchedRef = useRef(state.maskTouched);
@@ -351,6 +396,11 @@ export function useEditor() {
     (patch: Partial<BlendParams>) => dispatch({ type: "SET_BLEND", patch }),
     [],
   );
+  const setCrop = useCallback(
+    (patch: Partial<CropParams>) => dispatch({ type: "SET_CROP", patch }),
+    [],
+  );
+  const resetCrop = useCallback(() => dispatch({ type: "RESET_CROP" }), []);
   const resetAdjust = useCallback(() => dispatch({ type: "RESET_ADJUST" }), []);
   const setEditable = useCallback(
     (value: boolean) => dispatch({ type: "SET_EDITABLE", value }),
@@ -358,6 +408,10 @@ export function useEditor() {
   );
   const setMaskMode = useCallback(
     (value: boolean) => dispatch({ type: "SET_MASK_MODE", value }),
+    [],
+  );
+  const setCropMode = useCallback(
+    (value: boolean) => dispatch({ type: "SET_CROP_MODE", value }),
     [],
   );
   const ensureMask = useCallback((): MaskCanvas | null => {
@@ -401,6 +455,29 @@ export function useEditor() {
     };
   }, [bgImage, corners, state.userImage]);
 
+  // Recompute source (user-image) stats over the *visible* crop window so the
+  // Reinhard match tracks what's actually framed, not the whole upload. SET_USER
+  // seeds whole-image stats; this refines (and follows) zoom/pan/corner changes.
+  // Debounced like target stats so dragging the crop stays smooth.
+  const crop = state.crop;
+  const userImage = state.userImage;
+  const bgWidth = state.source?.bgWidth ?? 0;
+  const bgHeight = state.source?.bgHeight ?? 0;
+  useEffect(() => {
+    if (!userImage || !corners) return;
+    if (srcStatsTimer.current) window.clearTimeout(srcStatsTimer.current);
+    srcStatsTimer.current = window.setTimeout(() => {
+      const userW = userImage.naturalWidth || userImage.width;
+      const userH = userImage.naturalHeight || userImage.height;
+      const win = cropWindow(crop, corners, bgWidth, bgHeight, userW, userH);
+      const stats = imageStatsRegion(userImage, win);
+      dispatch({ type: "SET_SRC_STATS", stats });
+    }, 120);
+    return () => {
+      if (srcStatsTimer.current) window.clearTimeout(srcStatsTimer.current);
+    };
+  }, [userImage, corners, crop, bgWidth, bgHeight]);
+
   return {
     state,
     openPreset,
@@ -413,8 +490,11 @@ export function useEditor() {
     setCorners,
     setGrade,
     setBlend,
+    setCrop,
+    resetCrop,
     resetAdjust,
     setEditable,
+    setCropMode,
     setMaskMode,
     ensureMask,
     importMask,

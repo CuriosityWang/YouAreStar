@@ -6,6 +6,7 @@ import { destToSourceUV, toGLMat3, type Quad } from "../homography";
 import { NEUTRAL_STATS, type Stats } from "../color";
 import type { Corners } from "../../data/presets";
 import { FRAG_SRC, VERT_SRC } from "./shaders";
+import { cropWindow, type CropParams } from "../crop";
 
 export type BlendMode = "normal" | "multiply" | "soft-light" | "screen";
 export const BLEND_MODES: BlendMode[] = ["normal", "multiply", "soft-light", "screen"];
@@ -43,6 +44,7 @@ export const DEFAULT_BLEND: BlendParams = {
 export interface RenderState {
   corners: Corners;
   hasUser: boolean;
+  crop: CropParams;
   srcStats: Stats;
   tgtStats: Stats;
   grade: GradeParams;
@@ -82,6 +84,8 @@ export class Renderer {
   /** background pixel dimensions, set on setBackground */
   bgWidth = 0;
   bgHeight = 0;
+  userWidth = 0;
+  userHeight = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -123,6 +127,7 @@ export class Renderer {
     // cache uniform locations
     for (const name of [
       "u_bg", "u_user", "u_mask", "u_hasUser", "u_hasMask", "u_destToSrc",
+      "u_cropCenter", "u_cropSpan", "u_cropFlip",
       "u_srcMean", "u_srcStd", "u_tgtMean", "u_tgtStd", "u_autoStrength",
       "u_brightness", "u_contrast", "u_saturation", "u_temperature",
       "u_opacity", "u_feather", "u_blendMode", "u_grain", "u_resolution", "u_seed",
@@ -179,6 +184,21 @@ export class Renderer {
   setUser(img: TexImage | null) {
     if (this.texUser !== this.placeholder) this.gl.deleteTexture(this.texUser);
     this.texUser = img ? this.upload(img, 0, 0) : this.placeholder;
+    if (img) {
+      const source = img as TexImageSource & {
+        naturalWidth?: number;
+        naturalHeight?: number;
+        videoWidth?: number;
+        videoHeight?: number;
+        width?: number;
+        height?: number;
+      };
+      this.userWidth = source.naturalWidth ?? source.videoWidth ?? source.width ?? 0;
+      this.userHeight = source.naturalHeight ?? source.videoHeight ?? source.height ?? 0;
+    } else {
+      this.userWidth = 0;
+      this.userHeight = 0;
+    }
   }
 
   setMask(img: TexImage | null) {
@@ -229,6 +249,17 @@ export class Renderer {
 
     const m = destToSourceUV(state.corners as unknown as Quad);
     gl.uniformMatrix3fv(u.u_destToSrc, false, toGLMat3(m));
+    const crop = cropWindow(
+      state.crop,
+      state.corners,
+      this.bgWidth,
+      this.bgHeight,
+      this.userWidth,
+      this.userHeight,
+    );
+    gl.uniform2f(u.u_cropCenter, crop.centerX, crop.centerY);
+    gl.uniform2f(u.u_cropSpan, crop.spanX, crop.spanY);
+    gl.uniform2f(u.u_cropFlip, state.crop.flipH ? -1 : 1, 1);
 
     const src = hasUser ? state.srcStats : NEUTRAL_STATS;
     const tgt = hasUser ? state.tgtStats : NEUTRAL_STATS;

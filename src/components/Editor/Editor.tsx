@@ -27,9 +27,12 @@ export function Editor({ api }: { api: EditorApi }) {
     clearError,
     setGrade,
     setBlend,
+    setCrop,
+    resetCrop,
     resetAdjust,
     saveScene,
     setEditable,
+    setCropMode,
     setMaskMode,
     importMask,
     backToGallery,
@@ -146,6 +149,7 @@ export function Editor({ api }: { api: EditorApi }) {
       const renderState: RenderState = {
         corners: s.corners,
         hasUser: true,
+        crop: state.crop,
         srcStats: state.srcStats,
         tgtStats: state.tgtStats,
         grade: state.grade,
@@ -223,8 +227,9 @@ export function Editor({ api }: { api: EditorApi }) {
     backToGallery();
   }
 
-  const canAdjust = s.kind === "preset";
-  const inAdjust = canAdjust && state.editable;
+  const canAdjust = true;
+  const inAdjust = state.editable;
+  const inCrop = state.cropMode;
 
   const exportButton = (
     <Button variant="accent" disabled={!state.userImage || exporting} onClick={handleExport}>
@@ -254,6 +259,10 @@ export function Editor({ api }: { api: EditorApi }) {
     <Button variant="accent" onClick={() => setMaskMode(false)}>
       {t("mask.exit")}
     </Button>
+  ) : inCrop ? (
+    <Button variant="accent" onClick={() => setCropMode(false)}>
+      {t("crop.done")}
+    </Button>
   ) : inAdjust ? (
     <Button variant="accent" onClick={() => setEditable(false)}>
       {t("editor.lock")}
@@ -279,7 +288,7 @@ export function Editor({ api }: { api: EditorApi }) {
         transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
       };
 
-  const mode = state.maskMode ? "mask" : inAdjust ? "adjust" : undefined;
+  const mode = state.maskMode ? "mask" : inCrop ? "crop" : inAdjust ? "adjust" : undefined;
 
   return (
     <div
@@ -303,6 +312,11 @@ export function Editor({ api }: { api: EditorApi }) {
           </div>
           <div className="editor-bar-right">
             {/* On mobile, Adjust/Mask move into the sheet's Advanced section. */}
+            {!isMobile && state.userImage && (
+              <Button variant="ghost" onClick={() => setCropMode(!state.cropMode)}>
+                {state.cropMode ? t("crop.done") : t("crop.open")}
+              </Button>
+            )}
             {!isMobile && canAdjust && (
               <Button variant="ghost" onClick={() => setEditable(!state.editable)}>
                 {state.editable ? t("editor.lock") : t("editor.adjust")}
@@ -340,12 +354,17 @@ export function Editor({ api }: { api: EditorApi }) {
           tgtStats={state.tgtStats}
           grade={state.grade}
           blend={state.blend}
+          crop={state.crop}
           seed={state.seed}
           editable={state.editable}
+          cropMode={state.cropMode}
+          autoFitCrop={isMobile}
           api={api}
           maskMode={state.maskMode}
           maskTouched={state.maskTouched}
           onCorners={setCorners}
+          onCrop={setCrop}
+          onResetCrop={resetCrop}
           onUserFile={setUserFile}
         />
 
@@ -364,7 +383,7 @@ export function Editor({ api }: { api: EditorApi }) {
                 onClick={onGrabClick}
               />
               <div className="sheet-header-row">
-                {!state.maskMode && !inAdjust && addImageButton}
+                {!state.maskMode && !inAdjust && !inCrop && addImageButton}
                 {primaryAction}
                 <span className="sheet-controls-label">{t("sheet.controls")}</span>
               </div>
@@ -401,11 +420,17 @@ export function Editor({ api }: { api: EditorApi }) {
                 </div>
               </label>
               {state.userImage && (
-                <div className="row" style={{ marginTop: 14 }}>
-                  <Button variant="ghost" onClick={clearUser}>
-                    {t("image.remove")}
-                  </Button>
-                </div>
+                <>
+                  <div className="row" style={{ marginTop: 14 }}>
+                    <Button variant="ghost" onClick={() => setCropMode(!state.cropMode)}>
+                      {state.cropMode ? t("crop.done") : t("crop.open")}
+                    </Button>
+                    <Button variant="ghost" onClick={clearUser}>
+                      {t("image.remove")}
+                    </Button>
+                  </div>
+                  <p className="panel-note">{t("crop.note")}</p>
+                </>
               )}
               {state.editable && <p className="panel-note">{t("corner.note")}</p>}
               {state.maskMode && <p className="panel-note">{t("mask.hint")}</p>}
@@ -422,6 +447,18 @@ export function Editor({ api }: { api: EditorApi }) {
                   <span className="panel-num">{t("adv.hint")}</span>
                 </div>
                 <div className="row">
+                  {state.userImage && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        const entering = !state.cropMode;
+                        setCropMode(entering);
+                        if (entering) snapSheet(false);
+                      }}
+                    >
+                      {state.cropMode ? t("crop.done") : t("crop.open")}
+                    </Button>
+                  )}
                   {canAdjust && (
                     <Button
                       variant="ghost"

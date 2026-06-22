@@ -390,7 +390,20 @@
 /* corner handles overlay */
 .corner-layer { position: absolute; inset: 0; z-index: 5; }
 .corner-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.corner-quad { fill: rgba(210, 60, 37, 0.06); stroke: var(--vermilion); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.corner-guide {
+  fill: none;
+  stroke: var(--vermilion);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  opacity: 1;
+  transition: opacity 0.18s var(--ease);
+}
+.corner-layer[data-guides="hidden"] .corner-guide { opacity: 0; }
+.corner-controls { transition: opacity 0.12s var(--ease), transform 0.1s var(--ease); }
+.corner-layer[data-previewing="true"] .corner-controls {
+  opacity: 0;
+  pointer-events: none;
+}
 /* Transparent hit area so nothing covers the corner it marks — only the center
    dot is drawn, which is the precise point the user aligns to. */
 .handle {
@@ -404,7 +417,6 @@
   touch-action: none;
   display: grid;
   place-items: center;
-  transition: transform 0.1s var(--ease);
 }
 /* the only visible mark: a small high-contrast dot (white ring + dark halo so
    it reads on either light or dark imagery). */
@@ -436,6 +448,139 @@
   transition: opacity 0.12s var(--ease);
 }
 .handle:hover .handle-tag { opacity: 1; }
+.corner-preview {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 6;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(27, 23, 20, 0.72);
+  color: var(--paper-2);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+.corner-preview:hover { background: var(--ink); }
+.corner-preview:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+
+/* source-image crop mode */
+.crop-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  line-height: normal;
+  pointer-events: none;
+}
+.crop-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.crop-surface {
+  fill: rgba(210, 60, 37, 0.035);
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 1.5;
+  stroke-dasharray: 7 5;
+  filter: drop-shadow(0 0 1px rgba(27, 23, 20, 0.9));
+  cursor: move;
+  touch-action: none;
+  pointer-events: all;
+}
+.crop-surface:focus-visible {
+  stroke: var(--vermilion);
+  stroke-width: 2.25;
+  stroke-dasharray: none;
+  outline: none;
+}
+.crop-hint {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(27, 23, 20, 0.76);
+  color: var(--paper-2);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.crop-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(340px, calc(100% - 24px));
+  padding: 9px 10px;
+  border: var(--rule) solid var(--hairline-2);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--paper-2) 94%, transparent);
+  box-shadow: 0 8px 24px rgba(27, 23, 20, 0.22);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+.crop-zoom {
+  display: grid;
+  grid-template-columns: auto minmax(48px, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.crop-zoom input { width: 100%; cursor: ew-resize; }
+.crop-pct { text-align: right; min-width: 30px; font-variant-numeric: tabular-nums; }
+.crop-toolbar button {
+  flex: none;
+  padding: 5px 8px;
+  border: var(--rule) solid var(--hairline-2);
+  border-radius: 7px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.crop-toolbar button:hover { border-color: var(--ink); }
+.crop-toolbar button:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+/* compact square zoom steppers + flip toggle */
+.crop-step {
+  width: 22px;
+  padding: 4px 0 !important;
+  font-size: 13px !important;
+  line-height: 1;
+  text-align: center;
+}
+.crop-flip { font-size: 12px !important; }
+.crop-flip[aria-pressed="true"] {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+}
+/* touch: enlarge every crop control to a comfortable hit target */
+@media (pointer: coarse) {
+  .crop-toolbar { padding: 11px 12px; gap: 12px; }
+  .crop-toolbar button { padding: 9px 11px; }
+  .crop-step { width: 34px; padding: 9px 0 !important; }
+  .crop-zoom { gap: 10px; }
+  .crop-zoom input { height: 28px; }
+}
 
 /* sidebar */
 .sidebar {
@@ -636,6 +781,10 @@
 }
 .stage-canvas-holder[data-mask="true"] {
   cursor: none;
+  overflow: hidden;
+}
+/* clip the CSS-zoomed canvas + crop outline when the workspace is magnified */
+.stage-canvas-holder[data-crop="true"] {
   overflow: hidden;
 }
 .mask-layer {

@@ -29,6 +29,9 @@ uniform bool  u_hasUser;
 uniform bool  u_hasMask;
 
 uniform mat3  u_destToSrc;   // image-uv -> user source uv
+uniform vec2  u_cropCenter;   // center of the visible source-image crop
+uniform vec2  u_cropSpan;     // visible source UV width/height after cover + zoom
+uniform vec2  u_cropFlip;     // per-axis sample-offset sign (-1 mirrors that axis)
 
 uniform vec3  u_srcMean;
 uniform vec3  u_srcStd;
@@ -119,14 +122,17 @@ void main() {
 
   if (u_hasUser) {
     vec3 h = u_destToSrc * vec3(v_uv, 1.0);
-    vec2 suv = h.xy / h.z;
+    vec2 surfaceUV = h.xy / h.z;
 
     float inside =
-      step(0.0, suv.x) * step(suv.x, 1.0) *
-      step(0.0, suv.y) * step(suv.y, 1.0);
+      step(0.0, surfaceUV.x) * step(surfaceUV.x, 1.0) *
+      step(0.0, surfaceUV.y) * step(surfaceUV.y, 1.0);
 
     if (inside > 0.5) {
-      float edge = min(min(suv.x, 1.0 - suv.x), min(suv.y, 1.0 - suv.y));
+      float edge = min(
+        min(surfaceUV.x, 1.0 - surfaceUV.x),
+        min(surfaceUV.y, 1.0 - surfaceUV.y)
+      );
       float fa = smoothstep(0.0, max(u_feather, 1e-4), edge);
       float alpha = fa * u_opacity;
 
@@ -135,6 +141,7 @@ void main() {
       }
 
       if (alpha > 0.0) {
+        vec2 suv = u_cropCenter + (surfaceUV - 0.5) * u_cropSpan * u_cropFlip;
         vec3 fg = texture2D(u_user, suv).rgb;
         fg = reinhard(fg);
         fg = grade(fg);

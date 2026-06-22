@@ -53,10 +53,30 @@ const STRINGS = {
   "drop.empty": { en: "Drop your image onto the billboard", zh: "把图片拖到广告牌上" },
   "stage.compare": { en: "Hold to see original", zh: "按住看原图" },
   "image.remove": { en: "Remove image", zh: "移除图片" },
+  "crop.open": { en: "Fit & position", zh: "适配与定位" },
+  "crop.done": { en: "Done", zh: "完成" },
+  "crop.drag": {
+    en: "Drag to reposition · pinch or scroll to zoom",
+    zh: "拖动调整位置 · 双指捏合或滚轮缩放",
+  },
+  "crop.aria": {
+    en: "Reposition image. Drag to move, arrow keys to nudge, plus and minus to zoom.",
+    zh: "调整图片位置。拖动移动，方向键微调，加减号缩放。",
+  },
+  "crop.zoom": { en: "Zoom", zh: "缩放" },
+  "crop.zoomIn": { en: "Zoom in", zh: "放大" },
+  "crop.zoomOut": { en: "Zoom out", zh: "缩小" },
+  "crop.flip": { en: "Flip horizontal", zh: "水平翻转" },
+  "crop.reset": { en: "Reset", zh: "重置" },
+  "crop.note": {
+    en: "Images fill the ad without stretching. Reposition or zoom to choose which part stays visible.",
+    zh: "图片会等比填满广告位，不再拉伸；可拖动或缩放选择显示区域。",
+  },
   "corner.note": {
     en: "Drag the four corner points on the stage to align them with the ad surface.",
     zh: "在画面上拖动四个角点，使其对齐广告面。",
   },
+  "corner.preview": { en: "Hold for clean preview", zh: "按住看最终效果" },
 
   "panel.color": { en: "Color match", zh: "色彩匹配" },
   "num.reinhard": { en: "02 · Reinhard lαβ", zh: "02 · Reinhard lαβ" },

@@ -37,6 +37,42 @@ export function imageStats(img: ImageSource, maxDim = 96): Stats {
   return acc.result();
 }
 
+/**
+ * Mean/std of the sub-rectangle of the image that the crop actually samples
+ * (normalized center/span in source UV). Reinhard then matches the *visible*
+ * framing instead of the whole upload, so zooming/panning the crop keeps the
+ * auto color-match honest. Flip is irrelevant to a histogram, so it's ignored.
+ */
+export function imageStatsRegion(
+  img: ImageSource,
+  region: { centerX: number; centerY: number; spanX: number; spanY: number },
+  maxDim = 96,
+): Stats {
+  const [iw, ih] = dimsOf(img);
+  const sx = Math.max(0, Math.min(iw, (region.centerX - region.spanX / 2) * iw));
+  const sy = Math.max(0, Math.min(ih, (region.centerY - region.spanY / 2) * ih));
+  const sw = Math.max(1, Math.min(iw - sx, region.spanX * iw));
+  const sh = Math.max(1, Math.min(ih - sy, region.spanY * ih));
+  const scale = Math.min(1, maxDim / Math.max(sw, sh));
+  const w = Math.max(1, Math.round(sw * scale));
+  const h = Math.max(1, Math.round(sh * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+  const { data } = ctx.getImageData(0, 0, w, h);
+
+  const acc = new StatsAccumulator();
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 8) continue;
+    acc.addRGB(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255);
+  }
+  if (acc.count < 16) return imageStats(img);
+  return acc.result();
+}
+
 /** Ray-casting point-in-polygon test. `quad` points are in pixel space. */
 function inPolygon(px: number, py: number, poly: [number, number][]): boolean {
   let inside = false;
