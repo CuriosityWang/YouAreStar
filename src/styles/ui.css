@@ -21,6 +21,10 @@
   width: 100%;
   height: 18px;
   cursor: ew-resize;
+  /* On touch, let vertical pans scroll the parent sheet instead of editing the
+     value; only horizontal gestures reach the slider. Paired with the tap-jump
+     guard in Slider (controls.tsx) so a stray finger never changes a value. */
+  touch-action: pan-y;
 }
 .slider::-webkit-slider-runnable-track {
   height: 2px;
